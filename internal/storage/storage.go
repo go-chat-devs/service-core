@@ -6,12 +6,13 @@ import (
 	"log/slog"
 	"os"
 
+	"github.com/go-chat-devs/service-core/internal/storage/db"
 	"github.com/go-chat-devs/service-core/internal/storage/users"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type Storage struct {
-	db DB
+	db db.DBTX
 
 	Users *users.Storage
 }
