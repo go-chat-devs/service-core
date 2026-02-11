@@ -7,18 +7,23 @@ import (
 
 	"github.com/go-chat-devs/service-core/internal/models"
 	"github.com/go-chat-devs/service-core/internal/scanner"
+	"github.com/go-chat-devs/service-core/internal/storage/db"
 	"github.com/go-chat-devs/service-core/internal/tagger"
-	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/jackc/pgx/v5"
 )
 
 var tag = tagger.Tagger("storage-relations")
 
 type Storage struct {
-	db *pgxpool.Pool
+	db db.DBTX
 }
 
-func New(db *pgxpool.Pool) *Storage {
+func New(db db.DBTX) *Storage {
 	return &Storage{db: db}
+}
+
+func (s *Storage) WithTX(tx pgx.Tx) *Storage {
+	return &Storage{db: tx}
 }
 
 func (s *Storage) InsertRelation(ctx context.Context, userUID, friendUID string) error {
