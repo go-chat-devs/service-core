@@ -1,6 +1,6 @@
 CREATE TABLE IF NOT EXISTS users (
     id SERIAL PRIMARY KEY,
-    uuid VARCHAR(36) NOT NULL UNIQUE,
+    user_uid UUID NOT NULL UNIQUE,
     username VARCHAR(30) UNIQUE,
-    avatar_uid VARCHAR(36)
+    avatar_uid UUID
 );
