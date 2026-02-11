@@ -11,7 +11,7 @@ import (
 )
 
 type Storage struct {
-	pool *pgxpool.Pool
+	db DB
 
 	Users *users.Storage
 }
@@ -29,7 +29,7 @@ func New(ctx context.Context) (*Storage, error) {
 	}
 
 	return &Storage{
-		pool: pool,
+		db: pool,
 
 		Users: users.New(pool),
 	}, nil
