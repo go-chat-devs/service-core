@@ -1,7 +1,13 @@
 package users
 
-import "database/sql"
+import (
+	"github.com/jackc/pgx/v5/pgxpool"
+)
 
 type Storage struct {
-	db *sql.DB
+	pool *pgxpool.Pool
+}
+
+func New(pool *pgxpool.Pool) *Storage {
+	return &Storage{pool: pool}
 }
