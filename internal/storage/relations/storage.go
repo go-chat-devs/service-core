@@ -14,45 +14,55 @@ import (
 var tag = tagger.Tagger("storage-relations")
 
 type Storage struct {
-	ctx  context.Context
-	pool *pgxpool.Pool
+	db *pgxpool.Pool
 }
 
-func New(ctx context.Context, pool *pgxpool.Pool) *Storage {
-	return &Storage{
-		ctx:  ctx,
-		pool: pool,
-	}
+func New(db *pgxpool.Pool) *Storage {
+	return &Storage{db: db}
 }
 
-func (s *Storage) InsertRelation(userUID, friendUID string) error {
-	tx, err := s.pool.Begin(s.ctx)
-	if err != nil {
-		slog.Error(tag("tx begin error: %v", err))
-		return err
-	}
-	defer tx.Rollback(s.ctx)
-
+func (s *Storage) InsertRelation(ctx context.Context, userUID, friendUID string) error {
 	const sql = `INSERT INTO relations(user_uid, friend_uid, timestamp) VALUES($1, $2, $3)`
 	timestamp := time.Now().Unix()
-
-	if _, err := tx.Exec(s.ctx, sql, userUID, friendUID, timestamp); err != nil {
-		return err
+	_, err := s.db.Exec(ctx, sql, userUID, friendUID, timestamp)
+	if err != nil {
+		slog.Error(tag("InsertRelation error: %v", err))
 	}
-
-	if err := tx.Commit(s.ctx); err != nil {
-		slog.Error(tag("tx commit error: %v", err))
-		return err
-	}
-	return nil
+	return err
 }
 
-func (s *Storage) GetRelation(userUID, friendUID string) (*models.Relation, bool) {
+func (s *Storage) DeleteRelation(ctx context.Context, userUID, friendUID string) error {
+	const sql = `DELETE FROM relations WHERE user_uid=$1 AND friend_uid=$2`
+	_, err := s.db.Exec(ctx, sql, userUID, friendUID)
+	if err != nil {
+		slog.Error(tag("DeleteRelation error: %v", err))
+	}
+	return err
+}
+
+func (s *Storage) GetRelation(ctx context.Context, userUID, friendUID string) (*models.Relation, bool) {
 	const sql = `SELECT id, user_uid, friend_uid, timestamp FROM relations WHERE user_uid=$1 AND friend_uid=$2`
-	row := s.pool.QueryRow(s.ctx, sql, userUID, friendUID)
+	row := s.db.QueryRow(ctx, sql, userUID, friendUID)
 	res, err := scanner.Row[*models.Relation](row)
 	if err != nil {
 		return nil, false
 	}
 	return res, true
+}
+
+func (s *Storage) GetRelations(ctx context.Context, userUID string) ([]*models.Relation, error) {
+	const sql = `SELECT id, user_uid, friend_uid, timestamp FROM relations WHERE user_uid=$1`
+	rows, err := s.db.Query(ctx, sql, userUID)
+	if err != nil {
+		slog.Error(tag("GetRelations query error: %v", err))
+		return nil, err
+	}
+	defer rows.Close()
+
+	res, err := scanner.Rows[*models.Relation](rows)
+	if err != nil {
+		slog.Error(tag("GetRelations scan error: %v", err))
+		return nil, err
+	}
+	return res, nil
 }
