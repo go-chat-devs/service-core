@@ -1,4 +1,4 @@
-CREATE TYPE message_type AS ENUM ('text', 'image');
+CREATE TYPE  message_type AS ENUM ('text', 'image');
 
 
 CREATE TABLE IF NOT EXISTS messages(
