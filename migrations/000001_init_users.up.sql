@@ -1,6 +1,6 @@
 CREATE TABLE IF NOT EXISTS users (
     id SERIAL PRIMARY KEY,
-    user_uid UUID NOT NULL UNIQUE,
+    user_uid UUID NOT NULL UNIQUE DEFAULT gen_random_uuid(),
     username VARCHAR(30) UNIQUE,
     avatar_uid UUID
 );

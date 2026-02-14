@@ -31,7 +31,7 @@ func (s *Storage) InsertMessage(
 	uid uuid.UUID,
 	fileUID uuid.UUID,
 ) error {
-	sql := "INSERT INTO image_messages (uid,file_uid) VALUES ($1,$2);"
+	sql := "INSERT INTO image_messages (message_uid,file_uid) VALUES ($1,$2);"
 	_, err := s.db.Exec(ctx, sql, uid, fileUID)
 	if err != nil {
 		slog.Error(tag("Storage image messages error: %v", err))
@@ -43,7 +43,7 @@ func (s *Storage) GetMessage(
 	ctx context.Context,
 	uid uuid.UUID,
 ) (*models.ImageMessage, error) {
-	sql := "SELECT * FROM image_messages WHERE uid=$1;"
+	sql := "SELECT * FROM image_messages WHERE message_uid=$1;"
 	row := s.db.QueryRow(ctx, sql, uid)
 	res, err := scanner.Row[*models.ImageMessage](row)
 	if err != nil {
@@ -57,7 +57,7 @@ func (s *Storage) GetMessages(
 	ctx context.Context,
 	uids []uuid.UUID,
 ) ([]*models.ImageMessage, error) {
-	sql := "SELECT * FROM image_messages WHERE uid=ANY($1);"
+	sql := "SELECT * FROM image_messages WHERE message_uid=ANY($1);"
 	rows, err := s.db.Query(ctx, sql, uids)
 	if err != nil {
 		slog.Error(tag("Storage image messages error: %v", err))
@@ -75,7 +75,7 @@ func (s *Storage) DeleteMessage(
 	ctx context.Context,
 	uid uuid.UUID,
 ) error {
-	sql := "DELETE * FROM image_messages WHERE uid=$1"
+	sql := "DELETE * FROM image_messages WHERE message_uid=$1"
 	_, err := s.db.Exec(ctx, sql, uid)
 	if err != nil {
 		slog.Error(tag("Storage image messages error: %v", err))

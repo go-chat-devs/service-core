@@ -35,7 +35,7 @@ func (s *Storage) InsertMessage(
 	typemessage string,
 ) error {
 	sql := `INSERT INTO messages 
-			(uid,chat_uid, timestamp, sender_uid,type) 
+			(uid,chat_uid, timestamp, sender_uid,message_type) 
 			VALUES ($1,$2,$3,$4,$5);`
 	_, err := s.db.Exec(ctx, sql, uid, chatUID, timestamp, senderUID, typemessage)
 	if err != nil {
