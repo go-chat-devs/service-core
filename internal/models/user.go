@@ -1,12 +1,15 @@
 package models
 
-import "github.com/jackc/pgx/v5"
+import (
+	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
+)
 
 type User struct {
 	ID        int64
-	UserUID   string
-	Username  string
-	AvatarUID string
+	UserUID   uuid.UUID
+	Username  uuid.UUID
+	AvatarUID uuid.UUID
 }
 
 func (u *User) FromRow(row pgx.Row) error {

@@ -7,6 +7,10 @@ import (
 	"os"
 
 	"github.com/go-chat-devs/service-core/internal/storage/db"
+	basemessage "github.com/go-chat-devs/service-core/internal/storage/messages/base_message"
+	imagemessage "github.com/go-chat-devs/service-core/internal/storage/messages/image_message"
+	textmessage "github.com/go-chat-devs/service-core/internal/storage/messages/text_message"
+	"github.com/go-chat-devs/service-core/internal/storage/relations"
 	"github.com/go-chat-devs/service-core/internal/storage/users"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -15,6 +19,10 @@ type Storage struct {
 	db db.DBTX
 
 	Users *users.Storage
+	Relations *relations.Storage
+	BaseMessages *basemessage.Storage
+	TextMessage *textmessage.Storage
+	ImageMessage *imagemessage.Storage
 }
 
 func New(ctx context.Context) (*Storage, error) {
@@ -33,5 +41,9 @@ func New(ctx context.Context) (*Storage, error) {
 		db: pool,
 
 		Users: users.New(pool),
+		Relations: relations.New(pool),
+		BaseMessages: basemessage.New(pool),
+		TextMessage: textmessage.New(pool),
+		ImageMessage: imagemessage.New(pool),
 	}, nil
 }
