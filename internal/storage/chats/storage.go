@@ -41,29 +41,29 @@ func (s *Storage) Insert(ctx context.Context, users [2]uuid.UUID) error {
 	return err
 }
 
-func (s *Storage) GetOne(ctx context.Context, uid uuid.UUID) (*models.Chat, error) {
+func (s *Storage) Select(ctx context.Context, uid uuid.UUID) (*models.Chat, error) {
 	const sql = `SELECT * FROM chats WHERE uid = $1`
 	row := s.db.QueryRow(ctx, sql, uid)
 	res, err := scanner.Row[*models.Chat](row)
 	if err != nil {
-		slog.Error(tag("get one error: %v", err))
+		slog.Error(tag("select error: %v", err))
 		return nil, err
 	}
 	return res, nil
 }
 
-func (s *Storage) GetMany(ctx context.Context, userUID uuid.UUID) ([]*models.Chat, error) {
+func (s *Storage) SelectAll(ctx context.Context, userUID uuid.UUID) ([]*models.Chat, error) {
 	const sql = `SELECT * FROM chats WHERE user_uid_low = $1 OR user_uid_high = $1`
 	rows, err := s.db.Query(ctx, sql, userUID)
 	if err != nil {
-		slog.Error(tag("get many query error: %v", err))
+		slog.Error(tag("select all query error: %v", err))
 		return nil, err
 	}
 	defer rows.Close()
 
 	res, err := scanner.Rows[*models.Chat](rows)
 	if err != nil {
-		slog.Error(tag("get many scan error: %v", err))
+		slog.Error(tag("select all scan error: %v", err))
 		return nil, err
 	}
 	return res, nil
