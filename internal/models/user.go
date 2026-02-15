@@ -8,8 +8,8 @@ import (
 type User struct {
 	ID        int64
 	UserUID   uuid.UUID
-	Username  uuid.UUID
-	AvatarUID uuid.UUID
+	Username  *string
+	AvatarUID *uuid.UUID
 }
 
 func (u *User) FromRow(row pgx.Row) error {
