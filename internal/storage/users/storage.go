@@ -58,7 +58,7 @@ func (s *Storage) SelectUsername(ctx context.Context, username string) (*models.
 }
 
 func (s *Storage) UpdateUsername(ctx context.Context, userUID uuid.UUID, newUsername *string) error {
-	const sql = "UPDATE users SET username = $1 WHERE user_uid = $2;"
+	const sql = "UPDATE users SET username = $1 WHERE user_uid = $2"
 	_, err := s.db.Exec(ctx, sql, newUsername, userUID)
 	if err != nil {
 		slog.Error(tag("update username error: %v", err))
@@ -67,7 +67,7 @@ func (s *Storage) UpdateUsername(ctx context.Context, userUID uuid.UUID, newUser
 }
 
 func (s *Storage) UpdateAvatar(ctx context.Context, userUID uuid.UUID, avatarUID *uuid.UUID) error {
-	const sql = "UPDATE users SET avatar_uid = $1 WHERE user_uid = $2;"
+	const sql = "UPDATE users SET avatar_uid = $1 WHERE user_uid = $2"
 	_, err := s.db.Exec(ctx, sql, avatarUID, userUID)
 	if err != nil {
 		slog.Error(tag("update avatar error: %v", err))
@@ -76,7 +76,7 @@ func (s *Storage) UpdateAvatar(ctx context.Context, userUID uuid.UUID, avatarUID
 }
 
 func (s *Storage) DeleteUser(ctx context.Context, userUID uuid.UUID) error {
-	const sql = "DELETE FROM users WHERE user_uid=$1;"
+	const sql = "DELETE FROM users WHERE user_uid=$1"
 
 	_, err := s.db.Exec(ctx, sql, userUID)
 	if err != nil {

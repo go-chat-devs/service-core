@@ -46,7 +46,7 @@ func (s *Storage) Select(
 	ctx context.Context,
 	uid uuid.UUID,
 ) (*models.TextMessage, error) {
-	const sql = "SELECT * FROM text_messages WHERE message_uid=$1;"
+	const sql = "SELECT * FROM text_messages WHERE message_uid=$1"
 	row := s.db.QueryRow(ctx, sql, uid)
 	res, err := scanner.Row[*models.TextMessage](row)
 	if err != nil {
@@ -92,7 +92,7 @@ func (s *Storage) UpdateText(
 	newText string,
 	changed time.Time,
 ) error {
-	const sql = "UPDATE text_messages SET text=$1, changed=$2 WHERE message_uid=$3;"
+	const sql = "UPDATE text_messages SET text=$1, changed=$2 WHERE message_uid=$3"
 	_, err := s.db.Exec(ctx, sql, newText, changed, messageUID)
 	if err != nil {
 		slog.Error(tag("update text error: %v", err))
