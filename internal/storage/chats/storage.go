@@ -43,28 +43,28 @@ func (s *Storage) DeleteChat(ctx context.Context, uid string) error {
 	return err
 }
 
-func (s *Storage) GetRelation(ctx context.Context, userUID, friendUID string) (*models.Relation, bool) {
-	const sql = `SELECT id, user_uid, friend_uid, timestamp FROM relations WHERE user_uid=$1 AND friend_uid=$2`
-	row := s.db.QueryRow(ctx, sql, userUID, friendUID)
-	res, err := scanner.Row[*models.Relation](row)
+func (s *Storage) GetChat(ctx context.Context, uid string) (*models.Chat, bool) {
+	const sql = `SELECT * FROM chats WHERE uid = $1`
+	row := s.db.QueryRow(ctx, sql, uid)
+	res, err := scanner.Row[*models.Chat](row)
 	if err != nil {
 		return nil, false
 	}
 	return res, true
 }
 
-func (s *Storage) GetRelations(ctx context.Context, userUID string) ([]*models.Relation, error) {
-	const sql = `SELECT id, user_uid, friend_uid, timestamp FROM relations WHERE user_uid=$1`
+func (s *Storage) GetChats(ctx context.Context, userUID string) ([]*models.Chat, error) {
+	const sql = `SELECT * FROM chats WHERE user_uid_low = $1 OR user_uid_high = $1`
 	rows, err := s.db.Query(ctx, sql, userUID)
 	if err != nil {
-		slog.Error(tag("GetRelations query error: %v", err))
+		slog.Error(tag("GetChats query error: %v", err))
 		return nil, err
 	}
 	defer rows.Close()
 
-	res, err := scanner.Rows[*models.Relation](rows)
+	res, err := scanner.Rows[*models.Chat](rows)
 	if err != nil {
-		slog.Error(tag("GetRelations scan error: %v", err))
+		slog.Error(tag("GetChats scan error: %v", err))
 		return nil, err
 	}
 	return res, nil
