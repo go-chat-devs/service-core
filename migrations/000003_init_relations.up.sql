@@ -1,0 +1,6 @@
+CREATE TABLE IF NOT EXISTS relations (
+	id SERIAL PRIMARY KEY,
+	user_uid UUID NOT NULL,
+	friend_uid UUID NOT NULL,
+	timestamp TIMESTAMPTZ NOT NULL
+);
