@@ -1,0 +1,8 @@
+CREATE TABLE IF NOT EXISTS group_chats (
+	id SERIAL PRIMARY KEY,
+	uid UUID NOT NULL UNIQUE DEFAULT gen_random_uuid(),
+	title VARCHAR(128) NOT NULL,
+	bio VARCHAR(512),
+	avatar_uid UUID,
+	created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
