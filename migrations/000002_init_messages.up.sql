@@ -5,20 +5,20 @@ CREATE TABLE IF NOT EXISTS messages(
     uid UUID NOT NULL UNIQUE,
     chat_uid UUID NOT NULL,
     type message_type NOT NULL,
-    timestamp TIMESTAMPTZ NOT NULL
+    sent_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
 CREATE TABLE IF NOT EXISTS text_messages(
     id SERIAL PRIMARY KEY,
     message_uid UUID NOT NULL UNIQUE,
-    text TEXT,
-    from UUID,
-    changed TIMESTAMPTZ
+    content TEXT,
+    user_uid UUID,
+    changed_at TIMESTAMPTZ
 );
 
 CREATE TABLE IF NOT EXISTS image_messages(
     id SERIAL PRIMARY KEY,
     message_uid UUID NOT NULL UNIQUE,
     file_uid UUID NOT NULL DEFAULT gen_random_uuid(),
-    from UUID
+    user_uid UUID
 );
