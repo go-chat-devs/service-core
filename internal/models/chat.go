@@ -8,9 +8,9 @@ import (
 type Chat struct {
 	ID int
 
-	UID          uuid.UUID `json:"uid"`
-	UserUID_low  uuid.UUID `json:"user_uid_low"`
-	UserUID_high uuid.UUID `json:"user_uid_high"`
+	UID          uuid.UUID
+	UserUID_low  *uuid.UUID
+	UserUID_high *uuid.UUID
 }
 
 func (c *Chat) FromRow(row pgx.Row) error {

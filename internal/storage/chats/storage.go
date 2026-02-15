@@ -8,6 +8,7 @@ import (
 	"github.com/go-chat-devs/service-core/internal/scanner"
 	"github.com/go-chat-devs/service-core/internal/storage/db"
 	"github.com/go-chat-devs/service-core/internal/tagger"
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 )
 
@@ -25,47 +26,54 @@ func (s *Storage) WithTX(tx pgx.Tx) *Storage {
 	return &Storage{db: tx}
 }
 
-func (s *Storage) InsertChat(ctx context.Context, userUID1, userUID2 string) error {
+func (s *Storage) Insert(ctx context.Context, users [2]uuid.UUID) error {
 	const sql = `INSERT INTO chats(user_uid_low, uiser_uid_high) VALUES($2, $3)`
-	_, err := s.db.Exec(ctx, sql, userUID1, userUID2)
+	var userUID_low, userUID_high uuid.UUID
+	if users[0].String() < users[1].String() {
+		userUID_low, userUID_high = users[0], users[1]
+	} else {
+		userUID_low, userUID_high = users[1], users[0]
+	}
+	_, err := s.db.Exec(ctx, sql, userUID_low, userUID_high)
 	if err != nil {
-		slog.Error(tag("InsertRelation error: %v", err))
+		slog.Error(tag("insert error: %v", err))
 	}
 	return err
 }
 
-func (s *Storage) DeleteChat(ctx context.Context, uid string) error {
-	const sql = `DELETE FROM chats WHERE uid=$1`
-	_, err := s.db.Exec(ctx, sql, uid)
-	if err != nil {
-		slog.Error(tag("DeleteChat error: %v", err))
-	}
-	return err
-}
-
-func (s *Storage) GetChat(ctx context.Context, uid string) (*models.Chat, bool) {
+func (s *Storage) GetOne(ctx context.Context, uid uuid.UUID) (*models.Chat, error) {
 	const sql = `SELECT * FROM chats WHERE uid = $1`
 	row := s.db.QueryRow(ctx, sql, uid)
 	res, err := scanner.Row[*models.Chat](row)
 	if err != nil {
-		return nil, false
+		slog.Error(tag("get one error: %v", err))
+		return nil, err
 	}
-	return res, true
+	return res, nil
 }
 
-func (s *Storage) GetChats(ctx context.Context, userUID string) ([]*models.Chat, error) {
+func (s *Storage) GetMany(ctx context.Context, userUID uuid.UUID) ([]*models.Chat, error) {
 	const sql = `SELECT * FROM chats WHERE user_uid_low = $1 OR user_uid_high = $1`
 	rows, err := s.db.Query(ctx, sql, userUID)
 	if err != nil {
-		slog.Error(tag("GetChats query error: %v", err))
+		slog.Error(tag("get many query error: %v", err))
 		return nil, err
 	}
 	defer rows.Close()
 
 	res, err := scanner.Rows[*models.Chat](rows)
 	if err != nil {
-		slog.Error(tag("GetChats scan error: %v", err))
+		slog.Error(tag("get many scan error: %v", err))
 		return nil, err
 	}
 	return res, nil
+}
+
+func (s *Storage) Delete(ctx context.Context, uid uuid.UUID) error {
+	const sql = `DELETE FROM chats WHERE uid=$1`
+	_, err := s.db.Exec(ctx, sql, uid)
+	if err != nil {
+		slog.Error(tag("delete error: %v", err))
+	}
+	return err
 }
