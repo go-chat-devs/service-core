@@ -27,62 +27,58 @@ func (s *Storage) WithTX(tx pgx.Tx) *Storage {
 	return &Storage{db: tx}
 }
 
-func (s *Storage) InsertMessage(
+func (s *Storage) Insert(
 	ctx context.Context,
-	uid uuid.UUID,
+	messageUID uuid.UUID,
 	text string,
-	changed int64,
-) error  {
-	sql := "INSERT INTO text_messages (message_uid,text,changed) VALUES ($1,$2,$3);"
-	_, err := s.db.Exec(ctx, sql, uid,text,changed)
-	if err != nil{
-		slog.Error(tag("Storage text messages error: %v",err))
+	from uuid.UUID,
+	changed *time.Time,
+) error {
+	const sql = "INSERT INTO text_messages (message_uid, text, from, changed) VALUES ($1, $2, $3)"
+	_, err := s.db.Exec(ctx, sql, messageUID, text, from, changed)
+	if err != nil {
+		slog.Error(tag("insert error: %v", err))
 	}
 	return err
 }
 
-
-
-
-
-func (s *Storage) GetMessage(
+func (s *Storage) GetOne(
 	ctx context.Context,
 	uid uuid.UUID,
-) (*models.TextMessage,error){
-	sql := "SELECT * FROM text_messages WHERE message_uid=$1;"
+) (*models.TextMessage, error) {
+	const sql = "SELECT * FROM text_messages WHERE message_uid=$1;"
 	row := s.db.QueryRow(ctx, sql, uid)
 	res, err := scanner.Row[*models.TextMessage](row)
-	if err != nil{
-		slog.Error(tag("Storage text messages error: %v", err))
+	if err != nil {
+		slog.Error(tag("get one error: %v", err))
 		return nil, err
 	}
 	return res, nil
 }
 
-func (s *Storage) GetMessages(
+func (s *Storage) GetMany(
 	ctx context.Context,
 	uids []uuid.UUID,
 ) ([]*models.TextMessage, error) {
-	sql := "SELECT * FROM text_messages WHERE message_uid=ANY($1);"
+	const sql = "SELECT * FROM text_messages WHERE message_uid=ANY($1)"
 	rows, err := s.db.Query(ctx, sql, uids)
 	if err != nil {
-		slog.Error(tag("Storage text messages error: %v", err))
+		slog.Error(tag("get many query error: %v", err))
 		return nil, err
 	}
 	res, err := scanner.Rows[*models.TextMessage](rows)
 	if err != nil {
-		slog.Error(tag("Storage text messages error: %v", err))
+		slog.Error(tag("get many scan error: %v", err))
 		return nil, err
 	}
 	return res, nil
 }
 
-
-func (s *Storage) DeleteMessage(
+func (s *Storage) Delete(
 	ctx context.Context,
 	uid uuid.UUID,
 ) error {
-	sql := "DELETE * FROM text_messages WHERE message_uid=$1"
+	const sql = "DELETE * FROM text_messages WHERE message_uid=$1"
 	_, err := s.db.Exec(ctx, sql, uid)
 	if err != nil {
 		slog.Error(tag("Storage text messages error: %v", err))
@@ -90,18 +86,16 @@ func (s *Storage) DeleteMessage(
 	return err
 }
 
-
-
-func (s *Storage) ChangeText(
+func (s *Storage) UpdateText(
 	ctx context.Context,
-	uid uuid.UUID,
+	messageUID uuid.UUID,
 	newText string,
-) error{
-	timestamp := time.Now().Unix()
-	sql := "UPDATE text_messages SET text=$1, changed=$2 WHERE message_uid=$3;"
-	_, err := s.db.Exec(ctx,sql,newText,timestamp,uid)
-	if err != nil{
-		slog.Error(tag("Storage text messages error: %v", err))
+	changed time.Time,
+) error {
+	const sql = "UPDATE text_messages SET text=$1, changed=$2 WHERE message_uid=$3;"
+	_, err := s.db.Exec(ctx, sql, newText, changed, messageUID)
+	if err != nil {
+		slog.Error(tag("update text error: %v", err))
 	}
 	return err
 }

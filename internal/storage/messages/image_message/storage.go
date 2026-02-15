@@ -26,59 +26,60 @@ func (s *Storage) WithTX(tx pgx.Tx) *Storage {
 	return &Storage{db: tx}
 }
 
-func (s *Storage) InsertMessage(
+func (s *Storage) Insert(
 	ctx context.Context,
-	uid uuid.UUID,
+	messageUID uuid.UUID,
 	fileUID uuid.UUID,
+	from uuid.UUID,
 ) error {
-	sql := "INSERT INTO image_messages (message_uid,file_uid) VALUES ($1,$2);"
-	_, err := s.db.Exec(ctx, sql, uid, fileUID)
+	const sql = "INSERT INTO image_messages(message_uid, file_uid, from) VALUES ($1, $2)"
+	_, err := s.db.Exec(ctx, sql, messageUID, fileUID, from)
 	if err != nil {
-		slog.Error(tag("Storage image messages error: %v", err))
+		slog.Error(tag("insert error: %v", err))
 	}
 	return err
 }
 
-func (s *Storage) GetMessage(
+func (s *Storage) GetOne(
 	ctx context.Context,
-	uid uuid.UUID,
+	messageUID uuid.UUID,
 ) (*models.ImageMessage, error) {
-	sql := "SELECT * FROM image_messages WHERE message_uid=$1;"
-	row := s.db.QueryRow(ctx, sql, uid)
+	const sql = "SELECT * FROM image_messages WHERE message_uid=$1"
+	row := s.db.QueryRow(ctx, sql, messageUID)
 	res, err := scanner.Row[*models.ImageMessage](row)
 	if err != nil {
-		slog.Error(tag("Storage image messages error: %v", err))
+		slog.Error(tag("get one error: %v", err))
 		return nil, err
 	}
 	return res, nil
 }
 
-func (s *Storage) GetMessages(
+func (s *Storage) GetMany(
 	ctx context.Context,
-	uids []uuid.UUID,
+	messageUIDs []uuid.UUID,
 ) ([]*models.ImageMessage, error) {
-	sql := "SELECT * FROM image_messages WHERE message_uid=ANY($1);"
-	rows, err := s.db.Query(ctx, sql, uids)
+	const sql = "SELECT * FROM image_messages WHERE message_uid=ANY($1)"
+	rows, err := s.db.Query(ctx, sql, messageUIDs)
 	if err != nil {
-		slog.Error(tag("Storage image messages error: %v", err))
+		slog.Error(tag("get many query error: %v", err))
 		return nil, err
 	}
 	res, err := scanner.Rows[*models.ImageMessage](rows)
 	if err != nil {
-		slog.Error(tag("Storage image messages error: %v", err))
+		slog.Error(tag("get many scan error: %v", err))
 		return nil, err
 	}
 	return res, nil
 }
 
-func (s *Storage) DeleteMessage(
+func (s *Storage) Delete(
 	ctx context.Context,
 	uid uuid.UUID,
 ) error {
-	sql := "DELETE * FROM image_messages WHERE message_uid=$1"
+	const sql = "DELETE * FROM image_messages WHERE message_uid=$1"
 	_, err := s.db.Exec(ctx, sql, uid)
 	if err != nil {
-		slog.Error(tag("Storage image messages error: %v", err))
+		slog.Error(tag("delete error: %v", err))
 	}
 	return err
 }

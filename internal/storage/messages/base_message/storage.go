@@ -3,6 +3,7 @@ package basemessage
 import (
 	"context"
 	"log/slog"
+	"time"
 
 	"github.com/go-chat-devs/service-core/internal/models"
 	"github.com/go-chat-devs/service-core/internal/scanner"
@@ -26,64 +27,57 @@ func (s *Storage) WithTX(tx pgx.Tx) *Storage {
 	return &Storage{db: tx}
 }
 
-func (s *Storage) InsertMessage(
+func (s *Storage) Insert(
 	ctx context.Context,
-	uid uuid.UUID,
 	chatUID uuid.UUID,
-	timestamp int64,
-	senderUID uuid.UUID,
-	typemessage string,
+	timestamp time.Time,
+	messageType models.MesssageType,
 ) error {
-	sql := `INSERT INTO messages 
-			(uid,chat_uid, timestamp, sender_uid,message_type) 
-			VALUES ($1,$2,$3,$4,$5);`
-	_, err := s.db.Exec(ctx, sql, uid, chatUID, timestamp, senderUID, typemessage)
+	const sql = `INSERT INTO messages(chat_uid, timestamp, type) VALUES ($1,$2,$3,$4)`
+	_, err := s.db.Exec(ctx, sql, chatUID, timestamp, messageType)
 	if err != nil {
-		slog.Error(tag(""))
+		slog.Error(tag("insert error: %v", err))
 	}
 	return err
 }
 
-func (s *Storage) GetMessage(
+func (s *Storage) GetOne(
 	ctx context.Context,
 	uid uuid.UUID,
 ) (*models.BaseMessage, error) {
-	sql := "SELECT * FROM messages WHERE uid=$1;"
+	const sql = "SELECT * FROM messages WHERE uid=$1"
 	row := s.db.QueryRow(ctx, sql, uid)
 	res, err := scanner.Row[*models.BaseMessage](row)
 	if err != nil {
-		slog.Error(tag("Storage base messages error: %v", err))
+		slog.Error(tag("get one error: %v", err))
 		return nil, err
 	}
 	return res, nil
 }
 
-func (s *Storage) GetMessages(
-	ctx context.Context,
-	uids []uuid.UUID,
-) ([]*models.BaseMessage, error) {
-	sql := "SELECT * FROM messages WHERE uid=ANY($1);"
-	rows, err := s.db.Query(ctx, sql, uids)
+func (s *Storage) GetMany(ctx context.Context, chatUID uuid.UUID) ([]*models.BaseMessage, error) {
+	const sql = "SELECT * FROM messages WHERE chat_uid=$1"
+	rows, err := s.db.Query(ctx, sql, chatUID)
 	if err != nil {
-		slog.Error(tag("Storage base messages error: %v", err))
+		slog.Error(tag("get many query error: %v", err))
 		return nil, err
 	}
 	res, err := scanner.Rows[*models.BaseMessage](rows)
 	if err != nil {
-		slog.Error(tag("Storage base messages error: %v", err))
+		slog.Error(tag("get many scan error: %v", err))
 		return nil, err
 	}
 	return res, nil
 }
 
-func (s *Storage) DeleteMessage(
+func (s *Storage) Delete(
 	ctx context.Context,
 	uid uuid.UUID,
 ) error {
-	sql := "DELETE * FROM messages WHERE uid=$1"
+	const sql = "DELETE * FROM messages WHERE uid=$1"
 	_, err := s.db.Exec(ctx, sql, uid)
 	if err != nil {
-		slog.Error(tag("Storage base messages error: %v", err))
+		slog.Error(tag("delete error: %v", err))
 	}
 	return err
 }
