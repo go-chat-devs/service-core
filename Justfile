@@ -22,3 +22,6 @@ migrate-force:
 
 migrate-version:
     migrate -path migrations -database "postgres://postgres:admin@localhost:7765/chat?sslmode=disable" version
+
+migrate-create TITLE:
+    migrate create --dir migrations --ext sql --seq {{TITLE}}
