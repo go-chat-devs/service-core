@@ -16,3 +16,7 @@ type ImageMessage struct {
 func (m *ImageMessage) FromRow(row pgx.Row) error {
 	return row.Scan(&m.ID, &m.MessageUID, &m.FileUID, &m.From)
 }
+
+func ImageMessageFactory() *ImageMessage {
+	return &ImageMessage{}
+}

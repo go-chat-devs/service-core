@@ -19,3 +19,7 @@ type TextMessage struct {
 func (m *TextMessage) FromRow(row pgx.Row) error {
 	return row.Scan(&m.ID, &m.MessageUID, &m.Text, &m.From, &m.Changed)
 }
+
+func TextMessageFactory() *TextMessage {
+	return &TextMessage{}
+}

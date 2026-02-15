@@ -6,10 +6,13 @@ import (
 	"log/slog"
 	"os"
 
+	"github.com/go-chat-devs/service-core/internal/storage/chats"
 	"github.com/go-chat-devs/service-core/internal/storage/db"
-	basemessage "github.com/go-chat-devs/service-core/internal/storage/messages/base_message"
-	imagemessage "github.com/go-chat-devs/service-core/internal/storage/messages/image_message"
-	textmessage "github.com/go-chat-devs/service-core/internal/storage/messages/text_message"
+	groupchatmembers "github.com/go-chat-devs/service-core/internal/storage/group_chat_members"
+	groupchats "github.com/go-chat-devs/service-core/internal/storage/group_chats"
+	basemessages "github.com/go-chat-devs/service-core/internal/storage/messages/base_messages"
+	imagemessages "github.com/go-chat-devs/service-core/internal/storage/messages/image_messages"
+	textmessages "github.com/go-chat-devs/service-core/internal/storage/messages/text_messages"
 	"github.com/go-chat-devs/service-core/internal/storage/relations"
 	"github.com/go-chat-devs/service-core/internal/storage/users"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -18,11 +21,14 @@ import (
 type Storage struct {
 	db db.DBTX
 
-	Users *users.Storage
-	Relations *relations.Storage
-	BaseMessages *basemessage.Storage
-	TextMessage *textmessage.Storage
-	ImageMessage *imagemessage.Storage
+	Users            *users.Storage
+	Relations        *relations.Storage
+	BaseMessages     *basemessages.Storage
+	TextMessage      *textmessages.Storage
+	ImageMessage     *imagemessages.Storage
+	Chats            *chats.Storage
+	GroupChats       *groupchats.Storage
+	GroupChatMembers *groupchatmembers.Storage
 }
 
 func New(ctx context.Context) (*Storage, error) {
@@ -40,10 +46,13 @@ func New(ctx context.Context) (*Storage, error) {
 	return &Storage{
 		db: pool,
 
-		Users: users.New(pool),
-		Relations: relations.New(pool),
-		BaseMessages: basemessage.New(pool),
-		TextMessage: textmessage.New(pool),
-		ImageMessage: imagemessage.New(pool),
+		Users:            users.New(pool),
+		Relations:        relations.New(pool),
+		BaseMessages:     basemessages.New(pool),
+		TextMessage:      textmessages.New(pool),
+		ImageMessage:     imagemessages.New(pool),
+		Chats:            chats.New(pool),
+		GroupChats:       groupchats.New(pool),
+		GroupChatMembers: groupchatmembers.New(pool),
 	}, nil
 }

@@ -2,7 +2,7 @@ create-val-postgres:
     docker volume create postgres-data
 
 postgres-run:
-    docker run --name postgres-chat \
+    docker run -d --name postgres-chat \
     -e POSTGRES_USER=postgres \
     -e POSTGRES_DB=chat \
     -e POSTGRES_PASSWORD=admin \
@@ -16,9 +16,8 @@ migrations-up:
 migrations-down:
     migrate -path migrations -database "postgres://postgres:admin@localhost:7765/chat?sslmode=disable" down
 
-
-migrate-force:
-    migrate -path migrations -database "postgres://postgres:admin@localhost:7765/chat?sslmode=disable" force 1
+migrate-force VERSION:
+    migrate -path migrations -database "postgres://postgres:admin@localhost:7765/chat?sslmode=disable" force {{VERSION}}
 
 migrate-version:
     migrate -path migrations -database "postgres://postgres:admin@localhost:7765/chat?sslmode=disable" version

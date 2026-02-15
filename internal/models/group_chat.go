@@ -27,3 +27,7 @@ func (gc *GroupChat) FromRow(row pgx.Row) error {
 		&gc.Timestamp,
 	)
 }
+
+func GroupChatFactory() *GroupChat {
+	return &GroupChat{}
+}

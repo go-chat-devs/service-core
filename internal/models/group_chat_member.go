@@ -23,3 +23,7 @@ type GroupChatMember struct {
 func (m *GroupChatMember) FromRow(row pgx.Row) error {
 	return row.Scan(&m.ID, &m.ChatUID, &m.UserUID, &m.Role)
 }
+
+func GroupChatMemberFactory() *GroupChatMember {
+	return &GroupChatMember{}
+}

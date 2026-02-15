@@ -18,3 +18,7 @@ type Relation struct {
 func (r *Relation) FromRow(row pgx.Row) error {
 	return row.Scan(&r.ID, &r.UserUID, &r.FriendUID, &r.Timestamp)
 }
+
+func RelationFactory() *Relation {
+	return &Relation{}
+}

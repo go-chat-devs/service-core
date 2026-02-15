@@ -16,3 +16,7 @@ type Chat struct {
 func (c *Chat) FromRow(row pgx.Row) error {
 	return row.Scan(&c.ID, &c.UID, &c.UserUID_low, &c.UserUID_high)
 }
+
+func ChatFactory() *Chat {
+	return &Chat{}
+}

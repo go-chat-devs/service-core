@@ -26,3 +26,7 @@ type BaseMessage struct {
 func (m *BaseMessage) FromRow(row pgx.Row) error {
 	return row.Scan(&m.ID, &m.UID, &m.ChatUID, &m.Timestamp, &m.TypeMessage)
 }
+
+func BaseMessageFactory() *BaseMessage {
+	return &BaseMessage{}
+}

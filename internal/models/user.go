@@ -16,3 +16,7 @@ type User struct {
 func (u *User) FromRow(row pgx.Row) error {
 	return row.Scan(&u.ID, &u.UserUID, &u.Username, &u.AvatarUID)
 }
+
+func UserFactory() *User {
+	return &User{}
+}

@@ -1,9 +1,8 @@
-package textmessage
+package imagemessages
 
 import (
 	"context"
 	"log/slog"
-	"time"
 
 	"github.com/go-chat-devs/service-core/internal/models"
 	"github.com/go-chat-devs/service-core/internal/scanner"
@@ -13,7 +12,7 @@ import (
 	"github.com/jackc/pgx/v5"
 )
 
-var tag = tagger.Tagger("storage-text-message")
+var tag = tagger.Tagger("storage-image-message")
 
 type Storage struct {
 	db db.DBTX
@@ -30,12 +29,11 @@ func (s *Storage) WithTX(tx pgx.Tx) *Storage {
 func (s *Storage) Insert(
 	ctx context.Context,
 	messageUID uuid.UUID,
-	text string,
+	fileUID uuid.UUID,
 	userUID uuid.UUID,
-	changed_at *time.Time,
 ) error {
-	const sql = "INSERT INTO text_messages (message_uid, text, user_uid, changed_at) VALUES ($1, $2, $3)"
-	_, err := s.db.Exec(ctx, sql, messageUID, text, userUID, changed_at)
+	const sql = "INSERT INTO image_messages(message_uid, file_uid, user_uid) VALUES($1, $2)"
+	_, err := s.db.Exec(ctx, sql, messageUID, fileUID, userUID)
 	if err != nil {
 		slog.Error(tag("insert error: %v", err))
 	}
@@ -44,11 +42,11 @@ func (s *Storage) Insert(
 
 func (s *Storage) Select(
 	ctx context.Context,
-	uid uuid.UUID,
-) (*models.TextMessage, error) {
-	const sql = "SELECT * FROM text_messages WHERE message_uid=$1"
-	row := s.db.QueryRow(ctx, sql, uid)
-	res, err := scanner.Row[*models.TextMessage](row)
+	messageUID uuid.UUID,
+) (*models.ImageMessage, error) {
+	const sql = "SELECT * FROM image_messages WHERE message_uid=$1"
+	row := s.db.QueryRow(ctx, sql, messageUID)
+	res, err := scanner.Row(row, models.ImageMessageFactory)
 	if err != nil {
 		slog.Error(tag("select error: %v", err))
 		return nil, err
@@ -58,15 +56,15 @@ func (s *Storage) Select(
 
 func (s *Storage) SelectMany(
 	ctx context.Context,
-	uids []uuid.UUID,
-) ([]*models.TextMessage, error) {
-	const sql = "SELECT * FROM text_messages WHERE message_uid=ANY($1)"
-	rows, err := s.db.Query(ctx, sql, uids)
+	messageUIDs []uuid.UUID,
+) ([]*models.ImageMessage, error) {
+	const sql = "SELECT * FROM image_messages WHERE message_uid=ANY($1)"
+	rows, err := s.db.Query(ctx, sql, messageUIDs)
 	if err != nil {
 		slog.Error(tag("select many query error: %v", err))
 		return nil, err
 	}
-	res, err := scanner.Rows[*models.TextMessage](rows)
+	res, err := scanner.Rows(rows, models.ImageMessageFactory)
 	if err != nil {
 		slog.Error(tag("select many scan error: %v", err))
 		return nil, err
@@ -78,24 +76,10 @@ func (s *Storage) Delete(
 	ctx context.Context,
 	uid uuid.UUID,
 ) error {
-	const sql = "DELETE * FROM text_messages WHERE message_uid=$1"
+	const sql = "DELETE * FROM image_messages WHERE message_uid=$1"
 	_, err := s.db.Exec(ctx, sql, uid)
 	if err != nil {
-		slog.Error(tag("Storage text messages error: %v", err))
-	}
-	return err
-}
-
-func (s *Storage) UpdateText(
-	ctx context.Context,
-	messageUID uuid.UUID,
-	newText string,
-	changed_at time.Time,
-) error {
-	const sql = "UPDATE text_messages SET text=$1, changed_at=$2 WHERE message_uid=$3"
-	_, err := s.db.Exec(ctx, sql, newText, changed_at, messageUID)
-	if err != nil {
-		slog.Error(tag("update text error: %v", err))
+		slog.Error(tag("delete error: %v", err))
 	}
 	return err
 }

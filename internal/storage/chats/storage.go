@@ -44,7 +44,7 @@ func (s *Storage) Insert(ctx context.Context, users [2]uuid.UUID) error {
 func (s *Storage) Select(ctx context.Context, uid uuid.UUID) (*models.Chat, error) {
 	const sql = `SELECT * FROM chats WHERE uid = $1`
 	row := s.db.QueryRow(ctx, sql, uid)
-	res, err := scanner.Row[*models.Chat](row)
+	res, err := scanner.Row(row, models.ChatFactory)
 	if err != nil {
 		slog.Error(tag("select error: %v", err))
 		return nil, err
@@ -61,7 +61,7 @@ func (s *Storage) SelectAll(ctx context.Context, userUID uuid.UUID) ([]*models.C
 	}
 	defer rows.Close()
 
-	res, err := scanner.Rows[*models.Chat](rows)
+	res, err := scanner.Rows(rows, models.ChatFactory)
 	if err != nil {
 		slog.Error(tag("select all scan error: %v", err))
 		return nil, err

@@ -1,4 +1,4 @@
-package basemessage
+package basemessages
 
 import (
 	"context"
@@ -47,7 +47,7 @@ func (s *Storage) Select(
 ) (*models.BaseMessage, error) {
 	const sql = "SELECT * FROM messages WHERE uid=$1"
 	row := s.db.QueryRow(ctx, sql, uid)
-	res, err := scanner.Row[*models.BaseMessage](row)
+	res, err := scanner.Row(row, models.BaseMessageFactory)
 	if err != nil {
 		slog.Error(tag("select error: %v", err))
 		return nil, err
@@ -62,7 +62,7 @@ func (s *Storage) SelectAll(ctx context.Context, chatUID uuid.UUID) ([]*models.B
 		slog.Error(tag("select all query error: %v", err))
 		return nil, err
 	}
-	res, err := scanner.Rows[*models.BaseMessage](rows)
+	res, err := scanner.Rows(rows, models.BaseMessageFactory)
 	if err != nil {
 		slog.Error(tag("select all scan error: %v", err))
 		return nil, err

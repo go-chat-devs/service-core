@@ -39,7 +39,7 @@ func (s *Storage) Insert(ctx context.Context, userUID, friendUID uuid.UUID, adde
 func (s *Storage) Select(ctx context.Context, userUID, friendUID uuid.UUID) (*models.Relation, error) {
 	const sql = `SELECT * FROM relations WHERE user_uid=$1 AND friend_uid=$2`
 	row := s.db.QueryRow(ctx, sql, userUID, friendUID)
-	res, err := scanner.Row[*models.Relation](row)
+	res, err := scanner.Row(row, models.RelationFactory)
 	if err != nil {
 		slog.Error(tag("select error: %v", err))
 		return nil, err
@@ -56,7 +56,7 @@ func (s *Storage) SelectAll(ctx context.Context, userUID string) ([]*models.Rela
 	}
 	defer rows.Close()
 
-	res, err := scanner.Rows[*models.Relation](rows)
+	res, err := scanner.Rows(rows, models.RelationFactory)
 	if err != nil {
 		slog.Error(tag("select all scan error: %v", err))
 		return nil, err

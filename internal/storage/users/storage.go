@@ -38,7 +38,7 @@ func (s *Storage) Insert(ctx context.Context, userUID uuid.UUID, username *strin
 func (s *Storage) Select(ctx context.Context, userUID uuid.UUID) (*models.User, error) {
 	const sql = "SELECT * FROM users WHERE uid = $1"
 	row := s.db.QueryRow(ctx, sql, userUID)
-	user, err := scanner.Row[*models.User](row)
+	user, err := scanner.Row(row, models.UserFactory)
 	if err != nil {
 		slog.Error(tag("select error: %v", err))
 		return nil, err
@@ -49,7 +49,7 @@ func (s *Storage) Select(ctx context.Context, userUID uuid.UUID) (*models.User, 
 func (s *Storage) SelectUsername(ctx context.Context, username string) (*models.User, error) {
 	const sql = "SELECT * FROM users WHERE username = $1"
 	row := s.db.QueryRow(ctx, sql, username)
-	user, err := scanner.Row[*models.User](row)
+	user, err := scanner.Row(row, models.UserFactory)
 	if err != nil {
 		slog.Error(tag("select username error: %v", err))
 		return nil, err
