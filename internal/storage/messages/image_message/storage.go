@@ -30,10 +30,10 @@ func (s *Storage) Insert(
 	ctx context.Context,
 	messageUID uuid.UUID,
 	fileUID uuid.UUID,
-	from uuid.UUID,
+	userUID uuid.UUID,
 ) error {
-	const sql = "INSERT INTO image_messages(message_uid, file_uid, from) VALUES($1, $2)"
-	_, err := s.db.Exec(ctx, sql, messageUID, fileUID, from)
+	const sql = "INSERT INTO image_messages(message_uid, file_uid, user_uid) VALUES($1, $2)"
+	_, err := s.db.Exec(ctx, sql, messageUID, fileUID, userUID)
 	if err != nil {
 		slog.Error(tag("insert error: %v", err))
 	}

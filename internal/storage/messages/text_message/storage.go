@@ -31,11 +31,11 @@ func (s *Storage) Insert(
 	ctx context.Context,
 	messageUID uuid.UUID,
 	text string,
-	from uuid.UUID,
-	changed *time.Time,
+	userUID uuid.UUID,
+	changed_at *time.Time,
 ) error {
-	const sql = "INSERT INTO text_messages (message_uid, text, from, changed) VALUES ($1, $2, $3)"
-	_, err := s.db.Exec(ctx, sql, messageUID, text, from, changed)
+	const sql = "INSERT INTO text_messages (message_uid, text, user_uid, changed_at) VALUES ($1, $2, $3)"
+	_, err := s.db.Exec(ctx, sql, messageUID, text, userUID, changed_at)
 	if err != nil {
 		slog.Error(tag("insert error: %v", err))
 	}
@@ -90,10 +90,10 @@ func (s *Storage) UpdateText(
 	ctx context.Context,
 	messageUID uuid.UUID,
 	newText string,
-	changed time.Time,
+	changed_at time.Time,
 ) error {
-	const sql = "UPDATE text_messages SET text=$1, changed=$2 WHERE message_uid=$3"
-	_, err := s.db.Exec(ctx, sql, newText, changed, messageUID)
+	const sql = "UPDATE text_messages SET text=$1, changed_at=$2 WHERE message_uid=$3"
+	_, err := s.db.Exec(ctx, sql, newText, changed_at, messageUID)
 	if err != nil {
 		slog.Error(tag("update text error: %v", err))
 	}

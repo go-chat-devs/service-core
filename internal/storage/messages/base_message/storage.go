@@ -30,11 +30,11 @@ func (s *Storage) WithTX(tx pgx.Tx) *Storage {
 func (s *Storage) Insert(
 	ctx context.Context,
 	chatUID uuid.UUID,
-	timestamp time.Time,
+	sent_at time.Time,
 	messageType models.MesssageType,
 ) error {
-	const sql = `INSERT INTO messages(chat_uid, timestamp, type) VALUES($1, $2, $3, $4)`
-	_, err := s.db.Exec(ctx, sql, chatUID, timestamp, messageType)
+	const sql = `INSERT INTO messages(chat_uid, sent_at, type) VALUES($1, $2, $3, $4)`
+	_, err := s.db.Exec(ctx, sql, chatUID, sent_at, messageType)
 	if err != nil {
 		slog.Error(tag("insert error: %v", err))
 	}

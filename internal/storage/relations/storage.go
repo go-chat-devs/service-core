@@ -27,9 +27,9 @@ func (s *Storage) WithTX(tx pgx.Tx) *Storage {
 	return &Storage{db: tx}
 }
 
-func (s *Storage) Insert(ctx context.Context, userUID, friendUID uuid.UUID, timestamp time.Time) error {
-	const sql = `INSERT INTO relations(user_uid, friend_uid, timestamp) VALUES($1, $2, $3)`
-	_, err := s.db.Exec(ctx, sql, userUID, friendUID, timestamp)
+func (s *Storage) Insert(ctx context.Context, userUID, friendUID uuid.UUID, added_at time.Time) error {
+	const sql = `INSERT INTO relations(user_uid, friend_uid, added_at) VALUES($1, $2, $3)`
+	_, err := s.db.Exec(ctx, sql, userUID, friendUID, added_at)
 	if err != nil {
 		slog.Error(tag("insert error: %v", err))
 	}
