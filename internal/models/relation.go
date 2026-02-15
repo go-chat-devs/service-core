@@ -1,13 +1,18 @@
 package models
 
-import "github.com/jackc/pgx/v5"
+import (
+	"time"
+
+	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
+)
 
 type Relation struct {
 	ID int
 
-	UserUID   string `json:"user_uid"`
-	FriendUID string `json:"friend_uid"`
-	Timestamp int64  `json:"timestamp"`
+	UserUID   uuid.UUID
+	FriendUID uuid.UUID
+	Timestamp time.Time
 }
 
 func (r *Relation) FromRow(row pgx.Row) error {
