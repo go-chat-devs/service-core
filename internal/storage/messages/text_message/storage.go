@@ -13,7 +13,7 @@ import (
 	"github.com/jackc/pgx/v5"
 )
 
-var tag = tagger.Tagger("storage-textMessage")
+var tag = tagger.Tagger("storage-text-message")
 
 type Storage struct {
 	db db.DBTX
@@ -42,7 +42,7 @@ func (s *Storage) Insert(
 	return err
 }
 
-func (s *Storage) GetOne(
+func (s *Storage) Select(
 	ctx context.Context,
 	uid uuid.UUID,
 ) (*models.TextMessage, error) {
@@ -50,25 +50,25 @@ func (s *Storage) GetOne(
 	row := s.db.QueryRow(ctx, sql, uid)
 	res, err := scanner.Row[*models.TextMessage](row)
 	if err != nil {
-		slog.Error(tag("get one error: %v", err))
+		slog.Error(tag("select error: %v", err))
 		return nil, err
 	}
 	return res, nil
 }
 
-func (s *Storage) GetMany(
+func (s *Storage) SelectMany(
 	ctx context.Context,
 	uids []uuid.UUID,
 ) ([]*models.TextMessage, error) {
 	const sql = "SELECT * FROM text_messages WHERE message_uid=ANY($1)"
 	rows, err := s.db.Query(ctx, sql, uids)
 	if err != nil {
-		slog.Error(tag("get many query error: %v", err))
+		slog.Error(tag("select many query error: %v", err))
 		return nil, err
 	}
 	res, err := scanner.Rows[*models.TextMessage](rows)
 	if err != nil {
-		slog.Error(tag("get many scan error: %v", err))
+		slog.Error(tag("select many scan error: %v", err))
 		return nil, err
 	}
 	return res, nil

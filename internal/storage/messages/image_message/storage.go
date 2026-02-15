@@ -12,7 +12,7 @@ import (
 	"github.com/jackc/pgx/v5"
 )
 
-var tag = tagger.Tagger("storage-imageMessage")
+var tag = tagger.Tagger("storage-image-message")
 
 type Storage struct {
 	db db.DBTX
@@ -32,7 +32,7 @@ func (s *Storage) Insert(
 	fileUID uuid.UUID,
 	from uuid.UUID,
 ) error {
-	const sql = "INSERT INTO image_messages(message_uid, file_uid, from) VALUES ($1, $2)"
+	const sql = "INSERT INTO image_messages(message_uid, file_uid, from) VALUES($1, $2)"
 	_, err := s.db.Exec(ctx, sql, messageUID, fileUID, from)
 	if err != nil {
 		slog.Error(tag("insert error: %v", err))
@@ -40,7 +40,7 @@ func (s *Storage) Insert(
 	return err
 }
 
-func (s *Storage) GetOne(
+func (s *Storage) Select(
 	ctx context.Context,
 	messageUID uuid.UUID,
 ) (*models.ImageMessage, error) {
@@ -48,25 +48,25 @@ func (s *Storage) GetOne(
 	row := s.db.QueryRow(ctx, sql, messageUID)
 	res, err := scanner.Row[*models.ImageMessage](row)
 	if err != nil {
-		slog.Error(tag("get one error: %v", err))
+		slog.Error(tag("select error: %v", err))
 		return nil, err
 	}
 	return res, nil
 }
 
-func (s *Storage) GetMany(
+func (s *Storage) SelectMany(
 	ctx context.Context,
 	messageUIDs []uuid.UUID,
 ) ([]*models.ImageMessage, error) {
 	const sql = "SELECT * FROM image_messages WHERE message_uid=ANY($1)"
 	rows, err := s.db.Query(ctx, sql, messageUIDs)
 	if err != nil {
-		slog.Error(tag("get many query error: %v", err))
+		slog.Error(tag("select many query error: %v", err))
 		return nil, err
 	}
 	res, err := scanner.Rows[*models.ImageMessage](rows)
 	if err != nil {
-		slog.Error(tag("get many scan error: %v", err))
+		slog.Error(tag("select many scan error: %v", err))
 		return nil, err
 	}
 	return res, nil

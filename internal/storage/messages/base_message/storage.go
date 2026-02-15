@@ -13,7 +13,7 @@ import (
 	"github.com/jackc/pgx/v5"
 )
 
-var tag = tagger.Tagger("storage-baseMessage")
+var tag = tagger.Tagger("storage-base-message")
 
 type Storage struct {
 	db db.DBTX
@@ -33,7 +33,7 @@ func (s *Storage) Insert(
 	timestamp time.Time,
 	messageType models.MesssageType,
 ) error {
-	const sql = `INSERT INTO messages(chat_uid, timestamp, type) VALUES ($1,$2,$3,$4)`
+	const sql = `INSERT INTO messages(chat_uid, timestamp, type) VALUES($1, $2, $3, $4)`
 	_, err := s.db.Exec(ctx, sql, chatUID, timestamp, messageType)
 	if err != nil {
 		slog.Error(tag("insert error: %v", err))
@@ -41,7 +41,7 @@ func (s *Storage) Insert(
 	return err
 }
 
-func (s *Storage) GetOne(
+func (s *Storage) Select(
 	ctx context.Context,
 	uid uuid.UUID,
 ) (*models.BaseMessage, error) {
@@ -49,22 +49,22 @@ func (s *Storage) GetOne(
 	row := s.db.QueryRow(ctx, sql, uid)
 	res, err := scanner.Row[*models.BaseMessage](row)
 	if err != nil {
-		slog.Error(tag("get one error: %v", err))
+		slog.Error(tag("select error: %v", err))
 		return nil, err
 	}
 	return res, nil
 }
 
-func (s *Storage) GetMany(ctx context.Context, chatUID uuid.UUID) ([]*models.BaseMessage, error) {
+func (s *Storage) SelectAll(ctx context.Context, chatUID uuid.UUID) ([]*models.BaseMessage, error) {
 	const sql = "SELECT * FROM messages WHERE chat_uid=$1"
 	rows, err := s.db.Query(ctx, sql, chatUID)
 	if err != nil {
-		slog.Error(tag("get many query error: %v", err))
+		slog.Error(tag("select all query error: %v", err))
 		return nil, err
 	}
 	res, err := scanner.Rows[*models.BaseMessage](rows)
 	if err != nil {
-		slog.Error(tag("get many scan error: %v", err))
+		slog.Error(tag("select all scan error: %v", err))
 		return nil, err
 	}
 	return res, nil
