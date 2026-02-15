@@ -14,7 +14,6 @@ import (
 
 var tag = tagger.Tagger("storage-users")
 
-// TODO: Croshka :)
 type Storage struct {
 	db db.DBTX
 }
