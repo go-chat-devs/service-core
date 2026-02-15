@@ -3,6 +3,7 @@ package groupchats
 import (
 	"context"
 	"log/slog"
+	"time"
 
 	"github.com/go-chat-devs/service-core/internal/storage/db"
 	"github.com/go-chat-devs/service-core/internal/tagger"
@@ -24,9 +25,14 @@ func (s *Storage) WithTX(tx pgx.Tx) *Storage {
 	return &Storage{db: tx}
 }
 
-func (s *Storage) Insert(ctx context.Context, title string, bio *string, avatarUID *uuid.UUID) error {
-	const sql = `INSERT INTO group_chats(title, bio, avatar_uid) VALUES($1, $2, $)`
-	_, err := s.db.Exec(ctx, sql, title, bio, avatarUID)
+func (s *Storage) Insert(ctx context.Context,
+	title string,
+	bio *string,
+	avatarUID *uuid.UUID,
+	created_at time.Time,
+) error {
+	const sql = `INSERT INTO group_chats(title, bio, avatar_uid, created_at) VALUES($1, $2, $3, $4)`
+	_, err := s.db.Exec(ctx, sql, title, bio, avatarUID, created_at)
 	if err != nil {
 		slog.Error(tag("insert error: %v", err))
 	}
