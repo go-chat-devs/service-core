@@ -10,7 +10,7 @@ CREATE TABLE IF NOT EXISTS messages (
 
 CREATE TABLE IF NOT EXISTS text_messages (
 	id SERIAL PRIMARY KEY,
-	message_uid UUID NOT NULL UNIQUE,
+	message_uid UUID NOT NULL UNIQUE REFERENCES messages(uid) ON DELETE CASCADE,
 	content TEXT,
 	user_uid UUID,
 	changed_at TIMESTAMPTZ
@@ -18,7 +18,7 @@ CREATE TABLE IF NOT EXISTS text_messages (
 
 CREATE TABLE IF NOT EXISTS image_messages (
 	id SERIAL PRIMARY KEY,
-	message_uid UUID NOT NULL UNIQUE,
+	message_uid UUID NOT NULL UNIQUE REFERENCES messages(uid) ON DELETE CASCADE,
 	file_uid UUID NOT NULL DEFAULT gen_random_uuid(),
 	user_uid UUID
 );
