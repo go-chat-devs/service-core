@@ -55,6 +55,21 @@ func (s *Storage) Select(
 	return res, nil
 }
 
+func (s *Storage) SelectTypeAll(ctx context.Context, chatUID uuid.UUID, messageType models.MesssageType) ([]*models.BaseMessage, error) {
+	const sql = "SELECT * FROM messages WHERE chat_uid=$1 AND type=$2"
+	rows, err := s.db.Query(ctx, sql, chatUID, messageType)
+	if err != nil {
+		slog.Error(tag("select all query error: %v", err))
+		return nil, err
+	}
+	res, err := scanner.Rows(rows, models.BaseMessageFactory)
+	if err != nil {
+		slog.Error(tag("select all scan error: %v", err))
+		return nil, err
+	}
+	return res, nil
+}
+
 func (s *Storage) SelectAll(ctx context.Context, chatUID uuid.UUID) ([]*models.BaseMessage, error) {
 	const sql = "SELECT * FROM messages WHERE chat_uid=$1"
 	rows, err := s.db.Query(ctx, sql, chatUID)
