@@ -15,16 +15,14 @@ const (
 )
 
 type BaseMessage struct {
-	ID int
-
-	UID     uuid.UUID
+	ID      int
 	ChatUID uuid.UUID
 	SentAt  time.Time
 	Type    MesssageType
 }
 
 func (m *BaseMessage) FromRow(row pgx.Row) error {
-	return row.Scan(&m.ID, &m.UID, &m.ChatUID, &m.Type, &m.SentAt)
+	return row.Scan(&m.ID, &m.ChatUID, &m.Type, &m.SentAt)
 }
 
 func BaseMessageFactory() *BaseMessage {
