@@ -1,4 +1,4 @@
-CREATE TABLE IF NOT EXISTS relations (
+CREATE TABLE IF NOT EXISTS core.relations (
 	id SERIAL PRIMARY KEY,
 	user_uid UUID NOT NULL,
 	friend_uid UUID NOT NULL,

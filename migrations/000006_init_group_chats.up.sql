@@ -1,4 +1,4 @@
-CREATE TABLE IF NOT EXISTS group_chats (
+CREATE TABLE IF NOT EXISTS core.group_chats (
 	id SERIAL PRIMARY KEY,
 	uid UUID NOT NULL UNIQUE DEFAULT gen_random_uuid(),
 	title VARCHAR(128) NOT NULL,
