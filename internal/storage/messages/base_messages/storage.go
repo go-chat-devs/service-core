@@ -43,10 +43,10 @@ func (s *Storage) Insert(
 
 func (s *Storage) Select(
 	ctx context.Context,
-	uid uuid.UUID,
+	id int,
 ) (*models.BaseMessage, error) {
-	const sql = "SELECT * FROM messages WHERE uid=$1"
-	row := s.db.QueryRow(ctx, sql, uid)
+	const sql = "SELECT * FROM messages WHERE id=$1"
+	row := s.db.QueryRow(ctx, sql, id)
 	res, err := scanner.Row(row, models.BaseMessageFactory)
 	if err != nil {
 		slog.Error(tag("select error: %v", err))
@@ -87,10 +87,10 @@ func (s *Storage) SelectAll(ctx context.Context, chatUID uuid.UUID) ([]*models.B
 
 func (s *Storage) Delete(
 	ctx context.Context,
-	uid uuid.UUID,
+	id int,
 ) error {
-	const sql = "DELETE * FROM messages WHERE uid=$1"
-	_, err := s.db.Exec(ctx, sql, uid)
+	const sql = "DELETE * FROM messages WHERE id=$1"
+	_, err := s.db.Exec(ctx, sql, id)
 	if err != nil {
 		slog.Error(tag("delete error: %v", err))
 	}

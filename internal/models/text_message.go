@@ -11,12 +11,12 @@ type TextMessage struct {
 	UID       uuid.UUID
 	MessageID int
 	Text      string
-	From      *uuid.UUID
+	UserUID   *uuid.UUID
 	Changed   *time.Time
 }
 
 func (m *TextMessage) FromRow(row pgx.Row) error {
-	return row.Scan(&m.UID, &m.MessageID, &m.Text, &m.From, &m.Changed)
+	return row.Scan(&m.UID, &m.MessageID, &m.Text, &m.UserUID, &m.Changed)
 }
 
 func TextMessageFactory() *TextMessage {
