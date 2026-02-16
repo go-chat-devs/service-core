@@ -89,7 +89,7 @@ func (s *Storage) Delete(
 	ctx context.Context,
 	uid uuid.UUID,
 ) error {
-	const sql = "CASCADE DELETE * FROM messages WHERE uid=$1"
+	const sql = "DELETE * FROM messages WHERE uid=$1"
 	_, err := s.db.Exec(ctx, sql, uid)
 	if err != nil {
 		slog.Error(tag("delete error: %v", err))
