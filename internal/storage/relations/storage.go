@@ -47,7 +47,7 @@ func (s *Storage) Select(ctx context.Context, userUID, friendUID uuid.UUID) (*mo
 	return res, nil
 }
 
-func (s *Storage) SelectAll(ctx context.Context, userUID string) ([]*models.Relation, error) {
+func (s *Storage) SelectAll(ctx context.Context, userUID uuid.UUID) ([]*models.Relation, error) {
 	const sql = `SELECT * FROM relations WHERE user_uid=$1`
 	rows, err := s.db.Query(ctx, sql, userUID)
 	if err != nil {
@@ -64,7 +64,7 @@ func (s *Storage) SelectAll(ctx context.Context, userUID string) ([]*models.Rela
 	return res, nil
 }
 
-func (s *Storage) Delete(ctx context.Context, userUID, friendUID string) error {
+func (s *Storage) Delete(ctx context.Context, userUID, friendUID uuid.UUID) error {
 	const sql = `DELETE FROM relations WHERE user_uid=$1 AND friend_uid=$2`
 	_, err := s.db.Exec(ctx, sql, userUID, friendUID)
 	if err != nil {
@@ -73,7 +73,7 @@ func (s *Storage) Delete(ctx context.Context, userUID, friendUID string) error {
 	return err
 }
 
-func (s *Storage) DeleteAll(ctx context.Context, userUID string) error {
+func (s *Storage) DeleteAll(ctx context.Context, userUID uuid.UUID) error {
 	const sql = `DELETE FROM relations WHERE user_uid=$1`
 	_, err := s.db.Exec(ctx, sql, userUID)
 	if err != nil {
