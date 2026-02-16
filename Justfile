@@ -1,4 +1,4 @@
-DB_URL := 'postgres://postgres:admin@localhost:7765/chat?sslmode=disable&x-migrations-table=schema_migrations_core&search_path=core'
+DB_URL := 'postgres://postgres:admin@localhost:7765/chat?sslmode=disable&x-migrations-table=schema_migrations_core'
 
 create-val-postgres:
     docker volume create postgres-data
