@@ -8,6 +8,7 @@ import (
 	"github.com/go-chat-devs/service-core/internal/scanner"
 	"github.com/go-chat-devs/service-core/internal/storage/db"
 	"github.com/go-chat-devs/service-core/internal/tagger"
+	"github.com/go-chat-devs/service-core/internal/utils"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 )
@@ -28,12 +29,7 @@ func (s *Storage) WithTX(tx pgx.Tx) *Storage {
 
 func (s *Storage) Insert(ctx context.Context, users [2]uuid.UUID) error {
 	const sql = `INSERT INTO chats(user_uid_low, uiser_uid_high) VALUES($1, $2)`
-	var userUID_low, userUID_high uuid.UUID
-	if users[0].String() < users[1].String() {
-		userUID_low, userUID_high = users[0], users[1]
-	} else {
-		userUID_low, userUID_high = users[1], users[0]
-	}
+	userUID_low, userUID_high := utils.SortUUID(users[0], users[1])
 	_, err := s.db.Exec(ctx, sql, userUID_low, userUID_high)
 	if err != nil {
 		slog.Error(tag("insert error: %v", err))
@@ -44,6 +40,18 @@ func (s *Storage) Insert(ctx context.Context, users [2]uuid.UUID) error {
 func (s *Storage) Select(ctx context.Context, uid uuid.UUID) (*models.Chat, error) {
 	const sql = `SELECT * FROM chats WHERE uid = $1`
 	row := s.db.QueryRow(ctx, sql, uid)
+	res, err := scanner.Row(row, models.ChatFactory)
+	if err != nil {
+		slog.Error(tag("select error: %v", err))
+		return nil, err
+	}
+	return res, nil
+}
+
+func (s *Storage) SelectUsers(ctx context.Context, users [2]uuid.UUID) (*models.Chat, error) {
+	const sql = `SELECT * FROM chats WHERE user_uid_low=$1 AND user_uid_high=$2`
+	userUID_low, userUID_high := utils.SortUUID(users[0], users[1])
+	row := s.db.QueryRow(ctx, sql, userUID_low, userUID_high)
 	res, err := scanner.Row(row, models.ChatFactory)
 	if err != nil {
 		slog.Error(tag("select error: %v", err))
