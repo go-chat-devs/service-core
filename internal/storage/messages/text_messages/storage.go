@@ -74,18 +74,6 @@ func (s *Storage) SelectMany(
 	return res, nil
 }
 
-func (s *Storage) Delete(
-	ctx context.Context,
-	uid uuid.UUID,
-) error {
-	const sql = "DELETE * FROM text_messages WHERE message_uid=$1"
-	_, err := s.db.Exec(ctx, sql, uid)
-	if err != nil {
-		slog.Error(tag("Storage text messages error: %v", err))
-	}
-	return err
-}
-
 func (s *Storage) UpdateText(
 	ctx context.Context,
 	messageUID uuid.UUID,
