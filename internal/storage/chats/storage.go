@@ -28,7 +28,7 @@ func (s *Storage) WithTX(tx pgx.Tx) *Storage {
 }
 
 func (s *Storage) Insert(ctx context.Context, users [2]uuid.UUID) error {
-	const sql = `INSERT INTO chats(user_uid_low, uiser_uid_high) VALUES($1, $2)`
+	const sql = `INSERT INTO core.chats(user_uid_low, uiser_uid_high) VALUES($1, $2)`
 	userUID_low, userUID_high := utils.SortUUID(users[0], users[1])
 	_, err := s.db.Exec(ctx, sql, userUID_low, userUID_high)
 	if err != nil {
@@ -38,7 +38,7 @@ func (s *Storage) Insert(ctx context.Context, users [2]uuid.UUID) error {
 }
 
 func (s *Storage) Select(ctx context.Context, uid uuid.UUID) (*models.Chat, error) {
-	const sql = `SELECT * FROM chats WHERE uid = $1`
+	const sql = `SELECT * FROM core.chats WHERE uid = $1`
 	row := s.db.QueryRow(ctx, sql, uid)
 	res, err := scanner.Row(row, models.ChatFactory)
 	if err != nil {
@@ -49,7 +49,7 @@ func (s *Storage) Select(ctx context.Context, uid uuid.UUID) (*models.Chat, erro
 }
 
 func (s *Storage) SelectUsers(ctx context.Context, users [2]uuid.UUID) (*models.Chat, error) {
-	const sql = `SELECT * FROM chats WHERE user_uid_low=$1 AND user_uid_high=$2`
+	const sql = `SELECT * FROM core.chats WHERE user_uid_low=$1 AND user_uid_high=$2`
 	userUID_low, userUID_high := utils.SortUUID(users[0], users[1])
 	row := s.db.QueryRow(ctx, sql, userUID_low, userUID_high)
 	res, err := scanner.Row(row, models.ChatFactory)
@@ -61,7 +61,7 @@ func (s *Storage) SelectUsers(ctx context.Context, users [2]uuid.UUID) (*models.
 }
 
 func (s *Storage) SelectAll(ctx context.Context, userUID uuid.UUID) ([]*models.Chat, error) {
-	const sql = `SELECT * FROM chats WHERE user_uid_low = $1 OR user_uid_high = $1`
+	const sql = `SELECT * FROM core.chats WHERE user_uid_low = $1 OR user_uid_high = $1`
 	rows, err := s.db.Query(ctx, sql, userUID)
 	if err != nil {
 		slog.Error(tag("select all query error: %v", err))
@@ -78,7 +78,7 @@ func (s *Storage) SelectAll(ctx context.Context, userUID uuid.UUID) ([]*models.C
 }
 
 func (s *Storage) Delete(ctx context.Context, uid uuid.UUID) error {
-	const sql = `DELETE FROM chats WHERE uid=$1`
+	const sql = `DELETE FROM core.chats WHERE uid=$1`
 	_, err := s.db.Exec(ctx, sql, uid)
 	if err != nil {
 		slog.Error(tag("delete error: %v", err))

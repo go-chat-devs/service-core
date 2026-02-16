@@ -34,7 +34,7 @@ func (s *Storage) Insert(
 	userUID uuid.UUID,
 	changed_at *time.Time,
 ) error {
-	const sql = "INSERT INTO text_messages(message_id, text, user_uid, changed_at) VALUES($1, $2, $3)"
+	const sql = "INSERT INTO core.text_messages(message_id, text, user_uid, changed_at) VALUES($1, $2, $3)"
 	_, err := s.db.Exec(ctx, sql, messageID, text, userUID, changed_at)
 	if err != nil {
 		slog.Error(tag("insert error: %v", err))
@@ -46,7 +46,7 @@ func (s *Storage) Select(
 	ctx context.Context,
 	uid uuid.UUID,
 ) (*models.TextMessage, error) {
-	const sql = "SELECT * FROM text_messages WHERE uid=$1"
+	const sql = "SELECT * FROM core.text_messages WHERE uid=$1"
 	row := s.db.QueryRow(ctx, sql, uid)
 	res, err := scanner.Row(row, models.TextMessageFactory)
 	if err != nil {
@@ -60,7 +60,7 @@ func (s *Storage) SelectMany(
 	ctx context.Context,
 	uids []uuid.UUID,
 ) ([]*models.TextMessage, error) {
-	const sql = "SELECT * FROM text_messages WHERE uid=ANY($1)"
+	const sql = "SELECT * FROM core.text_messages WHERE uid=ANY($1)"
 	rows, err := s.db.Query(ctx, sql, uids)
 	if err != nil {
 		slog.Error(tag("select many query error: %v", err))
@@ -80,7 +80,7 @@ func (s *Storage) UpdateText(
 	newText string,
 	changed_at time.Time,
 ) error {
-	const sql = "UPDATE text_messages SET text=$1, changed_at=$2 WHERE uid=$3"
+	const sql = "UPDATE core.text_messages SET text=$1, changed_at=$2 WHERE uid=$3"
 	_, err := s.db.Exec(ctx, sql, newText, changed_at, uid)
 	if err != nil {
 		slog.Error(tag("update text error: %v", err))

@@ -31,9 +31,9 @@ func (s *Storage) Insert(
 	ctx context.Context,
 	chatUID uuid.UUID,
 	sent_at time.Time,
-	messageType models.MesssageType,
+	messageType models.MessageType,
 ) error {
-	const sql = `INSERT INTO messages(chat_uid, sent_at, type) VALUES($1, $2, $3, $4)`
+	const sql = `INSERT INTO core.messages(chat_uid, sent_at, type) VALUES($1, $2, $3, $4)`
 	_, err := s.db.Exec(ctx, sql, chatUID, sent_at, messageType)
 	if err != nil {
 		slog.Error(tag("insert error: %v", err))
@@ -45,7 +45,7 @@ func (s *Storage) Select(
 	ctx context.Context,
 	id int,
 ) (*models.BaseMessage, error) {
-	const sql = "SELECT * FROM messages WHERE id=$1"
+	const sql = "SELECT * FROM core.messages WHERE id=$1"
 	row := s.db.QueryRow(ctx, sql, id)
 	res, err := scanner.Row(row, models.BaseMessageFactory)
 	if err != nil {
@@ -55,8 +55,8 @@ func (s *Storage) Select(
 	return res, nil
 }
 
-func (s *Storage) SelectTypeAll(ctx context.Context, chatUID uuid.UUID, messageType models.MesssageType) ([]*models.BaseMessage, error) {
-	const sql = "SELECT * FROM messages WHERE chat_uid=$1 AND type=$2"
+func (s *Storage) SelectTypeAll(ctx context.Context, chatUID uuid.UUID, messageType models.MessageType) ([]*models.BaseMessage, error) {
+	const sql = "SELECT * FROM core.messages WHERE chat_uid=$1 AND type=$2"
 	rows, err := s.db.Query(ctx, sql, chatUID, messageType)
 	if err != nil {
 		slog.Error(tag("select all query error: %v", err))
@@ -71,7 +71,7 @@ func (s *Storage) SelectTypeAll(ctx context.Context, chatUID uuid.UUID, messageT
 }
 
 func (s *Storage) SelectAll(ctx context.Context, chatUID uuid.UUID) ([]*models.BaseMessage, error) {
-	const sql = "SELECT * FROM messages WHERE chat_uid=$1"
+	const sql = "SELECT * FROM core.messages WHERE chat_uid=$1"
 	rows, err := s.db.Query(ctx, sql, chatUID)
 	if err != nil {
 		slog.Error(tag("select all query error: %v", err))
@@ -89,7 +89,7 @@ func (s *Storage) Delete(
 	ctx context.Context,
 	id int,
 ) error {
-	const sql = "DELETE * FROM messages WHERE id=$1"
+	const sql = "DELETE * FROM core.messages WHERE id=$1"
 	_, err := s.db.Exec(ctx, sql, id)
 	if err != nil {
 		slog.Error(tag("delete error: %v", err))

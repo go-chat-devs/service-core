@@ -28,7 +28,7 @@ func (s *Storage) WithTX(tx pgx.Tx) *Storage {
 }
 
 func (s *Storage) Insert(ctx context.Context, userUID, friendUID uuid.UUID, added_at time.Time) error {
-	const sql = `INSERT INTO relations(user_uid, friend_uid, added_at) VALUES($1, $2, $3)`
+	const sql = `INSERT INTO core.relations(user_uid, friend_uid, added_at) VALUES($1, $2, $3)`
 	_, err := s.db.Exec(ctx, sql, userUID, friendUID, added_at)
 	if err != nil {
 		slog.Error(tag("insert error: %v", err))
@@ -37,7 +37,7 @@ func (s *Storage) Insert(ctx context.Context, userUID, friendUID uuid.UUID, adde
 }
 
 func (s *Storage) Select(ctx context.Context, userUID, friendUID uuid.UUID) (*models.Relation, error) {
-	const sql = `SELECT * FROM relations WHERE user_uid=$1 AND friend_uid=$2`
+	const sql = `SELECT * FROM core.relations WHERE user_uid=$1 AND friend_uid=$2`
 	row := s.db.QueryRow(ctx, sql, userUID, friendUID)
 	res, err := scanner.Row(row, models.RelationFactory)
 	if err != nil {
@@ -48,7 +48,7 @@ func (s *Storage) Select(ctx context.Context, userUID, friendUID uuid.UUID) (*mo
 }
 
 func (s *Storage) SelectAll(ctx context.Context, userUID uuid.UUID) ([]*models.Relation, error) {
-	const sql = `SELECT * FROM relations WHERE user_uid=$1`
+	const sql = `SELECT * FROM core.relations WHERE user_uid=$1`
 	rows, err := s.db.Query(ctx, sql, userUID)
 	if err != nil {
 		slog.Error(tag("select all query error: %v", err))
@@ -65,7 +65,7 @@ func (s *Storage) SelectAll(ctx context.Context, userUID uuid.UUID) ([]*models.R
 }
 
 func (s *Storage) Delete(ctx context.Context, userUID, friendUID uuid.UUID) error {
-	const sql = `DELETE FROM relations WHERE user_uid=$1 AND friend_uid=$2`
+	const sql = `DELETE FROM core.relations WHERE user_uid=$1 AND friend_uid=$2`
 	_, err := s.db.Exec(ctx, sql, userUID, friendUID)
 	if err != nil {
 		slog.Error(tag("delete error: %v", err))
@@ -74,7 +74,7 @@ func (s *Storage) Delete(ctx context.Context, userUID, friendUID uuid.UUID) erro
 }
 
 func (s *Storage) DeleteAll(ctx context.Context, userUID uuid.UUID) error {
-	const sql = `DELETE FROM relations WHERE user_uid=$1`
+	const sql = `DELETE FROM core.relations WHERE user_uid=$1`
 	_, err := s.db.Exec(ctx, sql, userUID)
 	if err != nil {
 		slog.Error(tag("delete error: %v", err))

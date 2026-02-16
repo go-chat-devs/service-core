@@ -31,7 +31,7 @@ func (s *Storage) Insert(ctx context.Context,
 	avatarUID *uuid.UUID,
 	created_at time.Time,
 ) error {
-	const sql = `INSERT INTO group_chats(title, bio, avatar_uid, created_at) VALUES($1, $2, $3, $4)`
+	const sql = `INSERT INTO core.group_chats(title, bio, avatar_uid, created_at) VALUES($1, $2, $3, $4)`
 	_, err := s.db.Exec(ctx, sql, title, bio, avatarUID, created_at)
 	if err != nil {
 		slog.Error(tag("insert error: %v", err))
@@ -40,7 +40,7 @@ func (s *Storage) Insert(ctx context.Context,
 }
 
 func (s *Storage) UpdateTitle(ctx context.Context, uid uuid.UUID, title string) error {
-	const sql = `UPDATE group_chats SET title=$1 WHERE uid=$2`
+	const sql = `UPDATE core.group_chats SET title=$1 WHERE uid=$2`
 	_, err := s.db.Exec(ctx, sql, title, uid)
 	if err != nil {
 		slog.Error(tag("update title error: %v", err))
@@ -49,7 +49,7 @@ func (s *Storage) UpdateTitle(ctx context.Context, uid uuid.UUID, title string) 
 }
 
 func (s *Storage) UpdateBIO(ctx context.Context, uid uuid.UUID, bio *string) error {
-	const sql = `UPDATE group_chats SET bio=$1 WHERE uid=$2`
+	const sql = `UPDATE core.group_chats SET bio=$1 WHERE uid=$2`
 	_, err := s.db.Exec(ctx, sql, bio, uid)
 	if err != nil {
 		slog.Error(tag("update bio error: %v", err))
@@ -58,7 +58,7 @@ func (s *Storage) UpdateBIO(ctx context.Context, uid uuid.UUID, bio *string) err
 }
 
 func (s *Storage) UpdateAvatar(ctx context.Context, uid uuid.UUID, avatarUID *uuid.UUID) error {
-	const sql = `UPDATE group_chats SET avatar_uid=$1 WHERE uid=$2`
+	const sql = `UPDATE core.group_chats SET avatar_uid=$1 WHERE uid=$2`
 	_, err := s.db.Exec(ctx, sql, avatarUID, uid)
 	if err != nil {
 		slog.Error(tag("update avatar error: %v", err))
@@ -67,7 +67,7 @@ func (s *Storage) UpdateAvatar(ctx context.Context, uid uuid.UUID, avatarUID *uu
 }
 
 func (s *Storage) Delete(ctx context.Context, uid string) error {
-	const sql = `DELETE FROM group_chats WHERE uid=$1`
+	const sql = `DELETE FROM core.group_chats WHERE uid=$1`
 	_, err := s.db.Exec(ctx, sql, uid)
 	if err != nil {
 		slog.Error(tag("delete error: %v", err))

@@ -7,18 +7,18 @@ import (
 	"github.com/jackc/pgx/v5"
 )
 
-type MesssageType string
+type MessageType string
 
 const (
-	Text  MesssageType = "text"
-	Image MesssageType = "image"
+	Text  MessageType = "text"
+	Image MessageType = "image"
 )
 
 type BaseMessage struct {
 	ID      int
 	ChatUID uuid.UUID
 	SentAt  time.Time
-	Type    MesssageType
+	Type    MessageType
 }
 
 func (m *BaseMessage) FromRow(row pgx.Row) error {
