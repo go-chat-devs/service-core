@@ -27,7 +27,7 @@ func (s *Storage) WithTX(tx pgx.Tx) *Storage {
 }
 
 func (s *Storage) Insert(ctx context.Context, users [2]uuid.UUID) error {
-	const sql = `INSERT INTO chats(user_uid_low, uiser_uid_high) VALUES($2, $3)`
+	const sql = `INSERT INTO chats(user_uid_low, uiser_uid_high) VALUES($1, $2)`
 	var userUID_low, userUID_high uuid.UUID
 	if users[0].String() < users[1].String() {
 		userUID_low, userUID_high = users[0], users[1]
