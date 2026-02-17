@@ -98,12 +98,12 @@ func (s *Storage) Delete(
 	return err
 }
 
-func (s *Storage) DeleteMany(
+func (s *Storage) DeleteAll(
 	ctx context.Context,
-	uids []uuid.UUID,
+	chatUID uuid.UUID,
 ) error {
-	const sql = "DELETE * FROM core.messages WHERE uid=ANY($1)"
-	_, err := s.db.Exec(ctx, sql, uids)
+	const sql = "DELETE * FROM core.messages WHERE chat_uid=$1"
+	_, err := s.db.Exec(ctx, sql, chatUID)
 	if err != nil {
 		slog.Error(tag("delete error: %v", err))
 	}
