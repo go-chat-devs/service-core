@@ -29,13 +29,12 @@ func (s *Storage) WithTX(tx pgx.Tx) *Storage {
 
 func (s *Storage) Insert(
 	ctx context.Context,
-	messageID int,
-	text string,
-	userUID uuid.UUID,
-	changed_at *time.Time,
+	messageUID uuid.UUID,
+	content string,
+	changedAt *time.Time,
 ) error {
-	const sql = "INSERT INTO core.text_messages(message_id, text, user_uid, changed_at) VALUES($1, $2, $3)"
-	_, err := s.db.Exec(ctx, sql, messageID, text, userUID, changed_at)
+	const sql = "INSERT INTO core.text_messages(message_uid, content, changed_at) VALUES($1, $2, $3)"
+	_, err := s.db.Exec(ctx, sql, messageUID, content, changedAt)
 	if err != nil {
 		slog.Error(tag("insert error: %v", err))
 	}
@@ -44,10 +43,10 @@ func (s *Storage) Insert(
 
 func (s *Storage) Select(
 	ctx context.Context,
-	uid uuid.UUID,
+	messageUID uuid.UUID,
 ) (*models.TextMessage, error) {
-	const sql = "SELECT * FROM core.text_messages WHERE uid=$1"
-	row := s.db.QueryRow(ctx, sql, uid)
+	const sql = "SELECT * FROM core.text_messages WHERE message_uid=$1"
+	row := s.db.QueryRow(ctx, sql, messageUID)
 	res, err := scanner.Row(row, models.TextMessageFactory)
 	if err != nil {
 		slog.Error(tag("select error: %v", err))
@@ -58,10 +57,10 @@ func (s *Storage) Select(
 
 func (s *Storage) SelectMany(
 	ctx context.Context,
-	uids []uuid.UUID,
+	messageUIDs []uuid.UUID,
 ) ([]*models.TextMessage, error) {
-	const sql = "SELECT * FROM core.text_messages WHERE uid=ANY($1)"
-	rows, err := s.db.Query(ctx, sql, uids)
+	const sql = "SELECT * FROM core.text_messages WHERE message_uid=ANY($1)"
+	rows, err := s.db.Query(ctx, sql, messageUIDs)
 	if err != nil {
 		slog.Error(tag("select many query error: %v", err))
 		return nil, err
@@ -76,12 +75,12 @@ func (s *Storage) SelectMany(
 
 func (s *Storage) UpdateText(
 	ctx context.Context,
-	uid uuid.UUID,
-	newText string,
+	messageUID uuid.UUID,
+	newContent string,
 	changed_at time.Time,
 ) error {
-	const sql = "UPDATE core.text_messages SET text=$1, changed_at=$2 WHERE uid=$3"
-	_, err := s.db.Exec(ctx, sql, newText, changed_at, uid)
+	const sql = "UPDATE core.text_messages SET content=$1, changed_at=$2 WHERE message_uid=$3"
+	_, err := s.db.Exec(ctx, sql, newContent, changed_at, messageUID)
 	if err != nil {
 		slog.Error(tag("update text error: %v", err))
 	}

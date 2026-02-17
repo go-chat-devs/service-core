@@ -30,11 +30,12 @@ func (s *Storage) WithTX(tx pgx.Tx) *Storage {
 func (s *Storage) Insert(
 	ctx context.Context,
 	chatUID uuid.UUID,
-	sent_at time.Time,
+	senderUID *uuid.UUID,
 	messageType models.MessageType,
+	sentAt time.Time,
 ) error {
-	const sql = `INSERT INTO core.messages(chat_uid, sent_at, type) VALUES($1, $2, $3, $4)`
-	_, err := s.db.Exec(ctx, sql, chatUID, sent_at, messageType)
+	const sql = `INSERT INTO core.messages(chat_uid, sender_uid, type, sent_at) VALUES($1, $2, $3, $4)`
+	_, err := s.db.Exec(ctx, sql, chatUID, senderUID, messageType, sentAt)
 	if err != nil {
 		slog.Error(tag("insert error: %v", err))
 	}
@@ -43,10 +44,10 @@ func (s *Storage) Insert(
 
 func (s *Storage) Select(
 	ctx context.Context,
-	id int,
+	uid uuid.UUID,
 ) (*models.BaseMessage, error) {
-	const sql = "SELECT * FROM core.messages WHERE id=$1"
-	row := s.db.QueryRow(ctx, sql, id)
+	const sql = "SELECT * FROM core.messages WHERE uid=$1"
+	row := s.db.QueryRow(ctx, sql, uid)
 	res, err := scanner.Row(row, models.BaseMessageFactory)
 	if err != nil {
 		slog.Error(tag("select error: %v", err))
@@ -87,10 +88,10 @@ func (s *Storage) SelectAll(ctx context.Context, chatUID uuid.UUID) ([]*models.B
 
 func (s *Storage) Delete(
 	ctx context.Context,
-	id int,
+	uid uuid.UUID,
 ) error {
-	const sql = "DELETE * FROM core.messages WHERE id=$1"
-	_, err := s.db.Exec(ctx, sql, id)
+	const sql = "DELETE * FROM core.messages WHERE uid=$1"
+	_, err := s.db.Exec(ctx, sql, uid)
 	if err != nil {
 		slog.Error(tag("delete error: %v", err))
 	}

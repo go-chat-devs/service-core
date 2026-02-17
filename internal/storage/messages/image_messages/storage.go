@@ -30,10 +30,9 @@ func (s *Storage) Insert(
 	ctx context.Context,
 	messageID int,
 	fileUID uuid.UUID,
-	userUID uuid.UUID,
 ) error {
-	const sql = "INSERT INTO core.image_messages(message_id, file_uid, user_uid) VALUES($1, $2)"
-	_, err := s.db.Exec(ctx, sql, messageID, fileUID, userUID)
+	const sql = "INSERT INTO core.image_messages(message_id, file_uid) VALUES($1, $2)"
+	_, err := s.db.Exec(ctx, sql, messageID, fileUID)
 	if err != nil {
 		slog.Error(tag("insert error: %v", err))
 	}
@@ -42,10 +41,10 @@ func (s *Storage) Insert(
 
 func (s *Storage) Select(
 	ctx context.Context,
-	uid uuid.UUID,
+	messageUID uuid.UUID,
 ) (*models.ImageMessage, error) {
-	const sql = "SELECT * FROM core.image_messages WHERE uid=$1"
-	row := s.db.QueryRow(ctx, sql, uid)
+	const sql = "SELECT * FROM core.image_messages WHERE message_uid=$1"
+	row := s.db.QueryRow(ctx, sql, messageUID)
 	res, err := scanner.Row(row, models.ImageMessageFactory)
 	if err != nil {
 		slog.Error(tag("select error: %v", err))
@@ -56,10 +55,10 @@ func (s *Storage) Select(
 
 func (s *Storage) SelectMany(
 	ctx context.Context,
-	uids []uuid.UUID,
+	messageUIDs []uuid.UUID,
 ) ([]*models.ImageMessage, error) {
-	const sql = "SELECT * FROM core.image_messages WHERE uid=ANY($1)"
-	rows, err := s.db.Query(ctx, sql, uids)
+	const sql = "SELECT * FROM core.image_messages WHERE message_uid=ANY($1)"
+	rows, err := s.db.Query(ctx, sql, messageUIDs)
 	if err != nil {
 		slog.Error(tag("select many query error: %v", err))
 		return nil, err
