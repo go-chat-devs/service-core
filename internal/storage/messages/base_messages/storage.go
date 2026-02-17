@@ -33,13 +33,13 @@ func (s *Storage) Insert(
 	senderUID *uuid.UUID,
 	messageType models.MessageType,
 	sentAt time.Time,
-) error {
-	const sql = `INSERT INTO core.messages(chat_uid, sender_uid, type, sent_at) VALUES($1, $2, $3, $4)`
-	_, err := s.db.Exec(ctx, sql, chatUID, senderUID, messageType, sentAt)
+) (messageUID uuid.UUID, err error) {
+	const sql = `INSERT INTO core.messages(chat_uid, sender_uid, type, sent_at) VALUES($1, $2, $3, $4) RETURNING uid`
+	err = s.db.QueryRow(ctx, sql, chatUID, senderUID, messageType, sentAt).Scan(&messageUID)
 	if err != nil {
 		slog.Error(tag("insert error: %v", err))
 	}
-	return err
+	return
 }
 
 func (s *Storage) Select(
