@@ -10,8 +10,8 @@ import (
 type MessageType string
 
 const (
-	Text  MessageType = "text"
-	Image MessageType = "image"
+	MessageType_Text  MessageType = "text"
+	MessageType_Image MessageType = "image"
 )
 
 type BaseMessage struct {
