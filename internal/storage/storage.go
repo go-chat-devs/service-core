@@ -65,26 +65,18 @@ func New(ctx context.Context) (*Storage, error) {
 }
 
 func (s *Storage) CreateUser(ctx context.Context, userUID uuid.UUID, username *string, avatarUID *uuid.UUID) error {
-	slog.Debug("CreateUser begin")
-	defer slog.Debug("CreateUser end")
 	return s.users.Insert(ctx, userUID, username, avatarUID)
 }
 
 func (s *Storage) ChangeUserUsername(ctx context.Context, userUID uuid.UUID, newUsername *string) error {
-	slog.Debug("ChangeUserUsername begin")
-	defer slog.Debug("ChangeUserUsername end")
 	return s.users.UpdateUsername(ctx, userUID, newUsername)
 }
 
 func (s *Storage) ChangeUserAvatar(ctx context.Context, userUID uuid.UUID, newAvatarUID *uuid.UUID) error {
-	slog.Debug("ChangeUserAvatar begin")
-	defer slog.Debug("ChangeUserAvatar end")
 	return s.users.UpdateAvatar(ctx, userUID, newAvatarUID)
 }
 
 func (s *Storage) AddFriend(ctx context.Context, userUID, friendUID uuid.UUID) (err error) {
-	slog.Debug("AddFriend begin")
-	defer slog.Debug("AddFriend end")
 	return db.Transaction(ctx, s.db, func(tx pgx.Tx) (err error) {
 		users := s.users.WithTX(tx)
 		relations := s.relations.WithTX(tx)
@@ -102,14 +94,10 @@ func (s *Storage) AddFriend(ctx context.Context, userUID, friendUID uuid.UUID) (
 }
 
 func (s *Storage) DeleteFriend(ctx context.Context, userUID uuid.UUID, friendUID uuid.UUID) error {
-	slog.Debug("DeleteFriend begin")
-	defer slog.Debug("DeleteFriend end")
 	return s.relations.Delete(ctx, userUID, friendUID)
 }
 
 func (s *Storage) CreateChat(ctx context.Context, userUID, friendUID uuid.UUID) error {
-	slog.Debug("CreateChat begin")
-	defer slog.Debug("CreateChat end")
 	return db.Transaction(ctx, s.db, func(tx pgx.Tx) (err error) {
 		Chats := s.chats.WithTX(tx)
 
@@ -129,14 +117,30 @@ func (s *Storage) CreateChat(ctx context.Context, userUID, friendUID uuid.UUID) 
 	})
 }
 func (s *Storage) DeleteChat(ctx context.Context, userUID, friendUID uuid.UUID) error {
-	slog.Debug("DeleteChat begin")
-	defer slog.Debug("DeleteChat end")
 	return db.Transaction(ctx, s.db, func(tx pgx.Tx) error {
-		// TODO
+		Chat := s.chats.WithTX(tx)
+		chat, err := Chat.SelectUsers(ctx, [2]uuid.UUID{userUID, friendUID})
+		if err != nil {
+			return err
+		}
+		if _, err := tx.Exec(ctx, `DELETE FROM core.base_messages WHERE chat_uid=$1`, chat.UID); err != nil {
+			return err
+		}
 		return nil
 	})
 }
-func (s *Storage) CreateGroupChat(ctx context.Context, userUID uuid.UUID, title string) error
+func (s *Storage) CreateGroupChat(ctx context.Context, userUID uuid.UUID, title string, bio *string, avatar_uid *uuid.UUID) error {
+	return db.Transaction(ctx, s.db, func(tx pgx.Tx) error {
+		GroupChats := s.groupChats.WithTX(tx)
+		// GroupChatMemebers := s.groupChatMembers.WithTX(tx)
+		err := GroupChats.Insert(ctx, title, bio, avatar_uid, time.Now())
+		if err != nil {
+			return err
+		}
+		// GroupChatMemebers.Insert(ctx, 0, userUID, models.MemberRole_Admin)
+		return nil
+	})
+}
 func (s *Storage) ChangeGroupChatTitle(ctx context.Context, userUID uuid.UUID, chatUID uuid.UUID, newTitle string) error
 func (s *Storage) ChangeGroupChatAvatar(ctx context.Context, userUID uuid.UUID, chatUID, avatarUID uuid.UUID) error
 func (s *Storage) DeleteGroupChat(ctx context.Context, userUID, chatUID uuid.UUID) error
@@ -144,8 +148,6 @@ func (s *Storage) SendTextMessage(ctx context.Context, userUID, chatUID uuid.UUI
 func (s *Storage) SendImageMessage(ctx context.Context, userUID, chatUID, fileUID uuid.UUID) error
 func (s *Storage) ChangeMessageText(ctx context.Context, userUID, messageUID uuid.UUID, newText string) error
 func (s *Storage) DeleteMessage(ctx context.Context, userUID, messageUID uuid.UUID) error {
-	slog.Debug("DeleteMessage begin")
-	defer slog.Debug("DeleteMessage end")
 	return db.Transaction(ctx, s.db, func(tx pgx.Tx) error {
 		Messages := s.baseMessages.WithTX(tx)
 		msg, err := Messages.Select(ctx, messageUID)
