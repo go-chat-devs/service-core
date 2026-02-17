@@ -66,7 +66,7 @@ func (s *Storage) UpdateAvatar(ctx context.Context, uid uuid.UUID, avatarUID *uu
 	return err
 }
 
-func (s *Storage) Delete(ctx context.Context, uid string) error {
+func (s *Storage) Delete(ctx context.Context, uid uuid.UUID) error {
 	const sql = `DELETE FROM core.group_chats WHERE uid=$1`
 	_, err := s.db.Exec(ctx, sql, uid)
 	if err != nil {
