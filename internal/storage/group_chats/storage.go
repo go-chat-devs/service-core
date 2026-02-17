@@ -5,6 +5,8 @@ import (
 	"log/slog"
 	"time"
 
+	"github.com/go-chat-devs/service-core/internal/models"
+	"github.com/go-chat-devs/service-core/internal/scanner"
 	"github.com/go-chat-devs/service-core/internal/storage/db"
 	"github.com/go-chat-devs/service-core/internal/tagger"
 	"github.com/google/uuid"
@@ -37,6 +39,17 @@ func (s *Storage) Insert(ctx context.Context,
 		slog.Error(tag("insert error: %v", err))
 	}
 	return
+}
+
+func (s *Storage) Select(ctx context.Context, uid uuid.UUID) (*models.GroupChat, error) {
+	const sql = `SELECT * FROM core.group_chats WHERE uid=$1`
+	row := s.db.QueryRow(ctx, sql, uid)
+	res, err := scanner.Row(row, models.GroupChatFactory)
+	if err != nil {
+		slog.Error(tag("select error: %v", err))
+		return nil, err
+	}
+	return res, nil
 }
 
 func (s *Storage) UpdateTitle(ctx context.Context, uid uuid.UUID, title string) error {
