@@ -6,14 +6,13 @@ import (
 )
 
 type ImageMessage struct {
-	UID       uuid.UUID
-	MessageID int
-	FileUID   uuid.UUID
-	UserUID   *uuid.UUID
+	ID         int
+	MessageUID uuid.UUID
+	FileUID    uuid.UUID
 }
 
 func (m *ImageMessage) FromRow(row pgx.Row) error {
-	return row.Scan(&m.UID, &m.MessageID, &m.FileUID, &m.UserUID)
+	return row.Scan(&m.ID, &m.MessageUID, &m.FileUID)
 }
 
 func ImageMessageFactory() *ImageMessage {

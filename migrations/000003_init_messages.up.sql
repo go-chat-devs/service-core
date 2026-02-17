@@ -1,23 +1,22 @@
 CREATE TYPE core.message_type AS ENUM ('text', 'image');
 
 CREATE TABLE IF NOT EXISTS core.messages (
-	id SERIAL PRIMARY KEY,
-	chat_uid UUID NOT NULL,
-	type core.message_type NOT NULL,
-	sent_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+	uid					UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+	chat_uid		UUID NOT NULL,
+	sender_uid	UUID,
+	type 				core.message_type NOT NULL,
+	sent_at 		TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
 CREATE TABLE IF NOT EXISTS core.text_messages (
-	uid UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-	message_id INT REFERENCES core.messages(id) ON DELETE CASCADE,
-	content TEXT,
-	user_uid UUID,
-	changed_at TIMESTAMPTZ
+	id					SERIAL PRIMARY KEY,
+	message_uid	UUID NOT NULL REFERENCES core.messages(uid) ON DELETE CASCADE,
+	content			TEXT NOT NULL,
+	changed_at	TIMESTAMPTZ
 );
 
 CREATE TABLE IF NOT EXISTS core.image_messages (
-	uid UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-	message_id INT REFERENCES core.messages(id) ON DELETE CASCADE,
-	file_uid UUID NOT NULL DEFAULT gen_random_uuid(),
-	user_uid UUID
+	id					SERIAL PRIMARY KEY,
+	message_uid	UUID NOT NULL REFERENCES core.messages(uid) ON DELETE CASCADE,
+	file_uid		UUID NOT NULL DEFAULT gen_random_uuid(),
 );

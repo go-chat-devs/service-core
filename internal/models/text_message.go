@@ -8,15 +8,14 @@ import (
 )
 
 type TextMessage struct {
-	UID       uuid.UUID
-	MessageID int
-	Text      string
-	UserUID   *uuid.UUID
-	Changed   *time.Time
+	ID         int
+	MessageUID uuid.UUID
+	Content    string
+	Changed    *time.Time
 }
 
 func (m *TextMessage) FromRow(row pgx.Row) error {
-	return row.Scan(&m.UID, &m.MessageID, &m.Text, &m.UserUID, &m.Changed)
+	return row.Scan(&m.ID, &m.MessageUID, &m.Content, &m.Changed)
 }
 
 func TextMessageFactory() *TextMessage {
