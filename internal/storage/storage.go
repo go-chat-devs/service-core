@@ -144,10 +144,18 @@ func (s *Storage) SendTextMessage(ctx context.Context, userUID, chatUID uuid.UUI
 func (s *Storage) SendImageMessage(ctx context.Context, userUID, chatUID, fileUID uuid.UUID) error
 func (s *Storage) ChangeMessageText(ctx context.Context, userUID, messageUID uuid.UUID, newText string) error
 func (s *Storage) DeleteMessage(ctx context.Context, userUID, messageUID uuid.UUID) error {
-	slog.Debug("DeleteChat begin")
-	defer slog.Debug("DeleteChat end")
+	slog.Debug("DeleteMessage begin")
+	defer slog.Debug("DeleteMessage end")
 	return db.Transaction(ctx, s.db, func(tx pgx.Tx) error {
-		// TODO
+		Messages := s.baseMessages.WithTX(tx)
+		msg, err := Messages.Select(ctx, messageUID)
+		if err != nil {
+			return err
+		}
+		if msg.SenderUID == nil || *msg.SenderUID != userUID {
+			return errors.New("wrong sender")
+		}
+		Messages.Delete(ctx, messageUID)
 		return nil
 	})
 }
