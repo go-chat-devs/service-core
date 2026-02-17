@@ -105,7 +105,7 @@ func (s *Storage) DeleteAll(
 	const sql = "DELETE * FROM core.messages WHERE chat_uid=$1"
 	_, err := s.db.Exec(ctx, sql, chatUID)
 	if err != nil {
-		slog.Error(tag("delete error: %v", err))
+		slog.Error(tag("delete all error: %v", err))
 	}
 	return err
 }
