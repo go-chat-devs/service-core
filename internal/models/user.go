@@ -6,15 +6,13 @@ import (
 )
 
 type User struct {
-	ID int
-
 	UserUID   uuid.UUID
 	Username  *string
 	AvatarUID *uuid.UUID
 }
 
 func (u *User) FromRow(row pgx.Row) error {
-	return row.Scan(&u.ID, &u.UserUID, &u.Username, &u.AvatarUID)
+	return row.Scan(&u.UserUID, &u.Username, &u.AvatarUID)
 }
 
 func UserFactory() *User {
