@@ -30,13 +30,13 @@ func (s *Storage) Insert(ctx context.Context,
 	bio *string,
 	avatarUID *uuid.UUID,
 	created_at time.Time,
-) error {
-	const sql = `INSERT INTO core.group_chats(title, bio, avatar_uid, created_at) VALUES($1, $2, $3, $4)`
-	_, err := s.db.Exec(ctx, sql, title, bio, avatarUID, created_at)
+) (chat_uid uuid.UUID, err error) {
+	const sql = `INSERT INTO core.group_chats(title, bio, avatar_uid, created_at) VALUES($1, $2, $3, $4) RETURNING uid`
+	err = s.db.QueryRow(ctx, sql, title, bio, avatarUID, created_at).Scan(&chat_uid)
 	if err != nil {
 		slog.Error(tag("insert error: %v", err))
 	}
-	return err
+	return
 }
 
 func (s *Storage) UpdateTitle(ctx context.Context, uid uuid.UUID, title string) error {

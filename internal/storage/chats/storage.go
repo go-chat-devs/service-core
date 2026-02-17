@@ -27,14 +27,14 @@ func (s *Storage) WithTX(tx pgx.Tx) *Storage {
 	return &Storage{db: tx}
 }
 
-func (s *Storage) Insert(ctx context.Context, users [2]uuid.UUID) error {
+func (s *Storage) Insert(ctx context.Context, users [2]uuid.UUID) (chat_uid uuid.UUID, err error) {
 	const sql = `INSERT INTO core.chats(user_uid_low, uiser_uid_high) VALUES($1, $2)`
 	userUID_low, userUID_high := utils.SortUUID(users[0], users[1])
-	_, err := s.db.Exec(ctx, sql, userUID_low, userUID_high)
+	err = s.db.QueryRow(ctx, sql, userUID_low, userUID_high).Scan(&chat_uid)
 	if err != nil {
 		slog.Error(tag("insert error: %v", err))
 	}
-	return err
+	return
 }
 
 func (s *Storage) Select(ctx context.Context, uid uuid.UUID) (*models.Chat, error) {
