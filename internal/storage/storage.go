@@ -8,7 +8,6 @@ import (
 	"os"
 	"time"
 
-	"github.com/go-chat-devs/service-core/internal/models"
 	"github.com/go-chat-devs/service-core/internal/storage/chats"
 	"github.com/go-chat-devs/service-core/internal/storage/db"
 	groupchatmembers "github.com/go-chat-devs/service-core/internal/storage/group_chat_members"
@@ -144,7 +143,7 @@ func (s *Storage) DeleteGroupChat(ctx context.Context, userUID, chatUID uuid.UUI
 func (s *Storage) SendTextMessage(ctx context.Context, userUID, chatUID uuid.UUID, text string) error
 func (s *Storage) SendImageMessage(ctx context.Context, userUID, chatUID, fileUID uuid.UUID) error
 func (s *Storage) ChangeMessageText(ctx context.Context, userUID, messageUID uuid.UUID, newText string) error
-func (s *Storage) DeleteMessage(ctx context.Context, userUID, uid uuid.UUID, messageType models.MessageType) error {
+func (s *Storage) DeleteMessage(ctx context.Context, userUID, messageUID uuid.UUID) error {
 	slog.Debug("DeleteChat begin")
 	defer slog.Debug("DeleteChat end")
 	return db.Transaction(ctx, s.db, func(tx pgx.Tx) error {
