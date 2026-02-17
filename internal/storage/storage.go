@@ -8,6 +8,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/go-chat-devs/service-core/internal/models"
 	"github.com/go-chat-devs/service-core/internal/storage/chats"
 	"github.com/go-chat-devs/service-core/internal/storage/db"
 	groupchatmembers "github.com/go-chat-devs/service-core/internal/storage/group_chat_members"
@@ -108,7 +109,7 @@ func (s *Storage) CreateChat(ctx context.Context, userUID, friendUID uuid.UUID) 
 		if !errors.Is(err, pgx.ErrNoRows) {
 			return err
 		}
-		err = Chats.Insert(ctx, [2]uuid.UUID{userUID, friendUID})
+		_, err = Chats.Insert(ctx, [2]uuid.UUID{userUID, friendUID})
 		if err != nil {
 			slog.Error(tag("chat insert error: %v", err))
 			return err
@@ -132,18 +133,57 @@ func (s *Storage) DeleteChat(ctx context.Context, userUID, friendUID uuid.UUID) 
 func (s *Storage) CreateGroupChat(ctx context.Context, userUID uuid.UUID, title string, bio *string, avatar_uid *uuid.UUID) error {
 	return db.Transaction(ctx, s.db, func(tx pgx.Tx) error {
 		GroupChats := s.groupChats.WithTX(tx)
-		// GroupChatMemebers := s.groupChatMembers.WithTX(tx)
-		err := GroupChats.Insert(ctx, title, bio, avatar_uid, time.Now())
+		GroupChatMemebers := s.groupChatMembers.WithTX(tx)
+		chatUID, err := GroupChats.Insert(ctx, title, bio, avatar_uid, time.Now())
 		if err != nil {
 			return err
 		}
-		// GroupChatMemebers.Insert(ctx, 0, userUID, models.MemberRole_Admin)
+		return GroupChatMemebers.Insert(ctx, chatUID, userUID, models.MemberRole_Admin)
+	})
+}
+func (s *Storage) ChangeGroupChatTitle(ctx context.Context, userUID uuid.UUID, chatUID uuid.UUID, newTitle string) error {
+	return db.Transaction(ctx, s.db, func(tx pgx.Tx) error {
+		GroupChats := s.groupChats.WithTX(tx)
+		GroupChatMemebers := s.groupChatMembers.WithTX(tx)
+		member, err := GroupChatMemebers.Select(ctx, chatUID, userUID)
+		if err != nil {
+			return err
+		}
+		if member.Role != models.MemberRole_Admin {
+			return errors.New("only admins can change title")
+		}
+		return GroupChats.UpdateTitle(ctx, chatUID, newTitle)
+	})
+}
+func (s *Storage) ChangeGroupChatAvatar(ctx context.Context, userUID, chatUID uuid.UUID, avatarUID *uuid.UUID) error {
+	return db.Transaction(ctx, s.db, func(tx pgx.Tx) error {
+		GroupChats := s.groupChats.WithTX(tx)
+		GroupChatMemebers := s.groupChatMembers.WithTX(tx)
+		member, err := GroupChatMemebers.Select(ctx, chatUID, userUID)
+		if err != nil {
+			return err
+		}
+		if member.Role != models.MemberRole_Admin {
+			return errors.New("only admins can change avatar")
+		}
+		return GroupChats.UpdateAvatar(ctx, chatUID, avatarUID)
+	})
+}
+func (s *Storage) DeleteGroupChat(ctx context.Context, userUID, chatUID uuid.UUID) error {
+	return db.Transaction(ctx, s.db, func(tx pgx.Tx) error {
+		// BaseMessages := s.baseMessages.WithTX(tx)
+		// GroupChats := s.groupChats.WithTX(tx)
+		GroupChatMemebers := s.groupChatMembers.WithTX(tx)
+		member, err := GroupChatMemebers.Select(ctx, chatUID, userUID)
+		if err != nil {
+			return err
+		}
+		if member.Role != models.MemberRole_Admin {
+			return errors.New("only admins can delete group chat")
+		}
 		return nil
 	})
 }
-func (s *Storage) ChangeGroupChatTitle(ctx context.Context, userUID uuid.UUID, chatUID uuid.UUID, newTitle string) error
-func (s *Storage) ChangeGroupChatAvatar(ctx context.Context, userUID uuid.UUID, chatUID, avatarUID uuid.UUID) error
-func (s *Storage) DeleteGroupChat(ctx context.Context, userUID, chatUID uuid.UUID) error
 func (s *Storage) SendTextMessage(ctx context.Context, userUID, chatUID uuid.UUID, text string) error
 func (s *Storage) SendImageMessage(ctx context.Context, userUID, chatUID, fileUID uuid.UUID) error
 func (s *Storage) ChangeMessageText(ctx context.Context, userUID, messageUID uuid.UUID, newText string) error
