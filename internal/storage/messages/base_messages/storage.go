@@ -97,3 +97,15 @@ func (s *Storage) Delete(
 	}
 	return err
 }
+
+func (s *Storage) DeleteMany(
+	ctx context.Context,
+	uids []uuid.UUID,
+) error {
+	const sql = "DELETE * FROM core.messages WHERE uid=ANY($1)"
+	_, err := s.db.Exec(ctx, sql, uids)
+	if err != nil {
+		slog.Error(tag("delete error: %v", err))
+	}
+	return err
+}
