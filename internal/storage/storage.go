@@ -32,8 +32,8 @@ type Storage struct {
 	users            *users.Storage
 	relations        *relations.Storage
 	baseMessages     *basemessages.Storage
-	textMessage      *textmessages.Storage
-	imageMessage     *imagemessages.Storage
+	textMessages     *textmessages.Storage
+	imageMessages    *imagemessages.Storage
 	chats            *chats.Storage
 	groupChats       *groupchats.Storage
 	groupChatMembers *groupchatmembers.Storage
@@ -57,8 +57,8 @@ func New(ctx context.Context) (*Storage, error) {
 		users:            users.New(pool),
 		relations:        relations.New(pool),
 		baseMessages:     basemessages.New(pool),
-		textMessage:      textmessages.New(pool),
-		imageMessage:     imagemessages.New(pool),
+		textMessages:     textmessages.New(pool),
+		imageMessages:    imagemessages.New(pool),
 		chats:            chats.New(pool),
 		groupChats:       groupchats.New(pool),
 		groupChatMembers: groupchatmembers.New(pool),
@@ -120,14 +120,12 @@ func (s *Storage) CreateChat(ctx context.Context, userUID, friendUID uuid.UUID) 
 func (s *Storage) DeleteChat(ctx context.Context, userUID, friendUID uuid.UUID) error {
 	return db.Transaction(ctx, s.db, func(tx pgx.Tx) error {
 		Chat := s.chats.WithTX(tx)
+		BaseMessages := s.baseMessages.WithTX(tx)
 		chat, err := Chat.SelectUsers(ctx, [2]uuid.UUID{userUID, friendUID})
 		if err != nil {
 			return err
 		}
-		if _, err := tx.Exec(ctx, `DELETE FROM core.base_messages WHERE chat_uid=$1`, chat.UID); err != nil {
-			return err
-		}
-		return nil
+		return BaseMessages.DeleteAll(ctx, chat.UID)
 	})
 }
 func (s *Storage) CreateGroupChat(ctx context.Context, userUID uuid.UUID, title string, bio *string, avatar_uid *uuid.UUID) error {
@@ -171,8 +169,8 @@ func (s *Storage) ChangeGroupChatAvatar(ctx context.Context, userUID, chatUID uu
 }
 func (s *Storage) DeleteGroupChat(ctx context.Context, userUID, chatUID uuid.UUID) error {
 	return db.Transaction(ctx, s.db, func(tx pgx.Tx) error {
-		// BaseMessages := s.baseMessages.WithTX(tx)
-		// GroupChats := s.groupChats.WithTX(tx)
+		BaseMessages := s.baseMessages.WithTX(tx)
+		GroupChats := s.groupChats.WithTX(tx)
 		GroupChatMemebers := s.groupChatMembers.WithTX(tx)
 		member, err := GroupChatMemebers.Select(ctx, chatUID, userUID)
 		if err != nil {
@@ -181,12 +179,115 @@ func (s *Storage) DeleteGroupChat(ctx context.Context, userUID, chatUID uuid.UUI
 		if member.Role != models.MemberRole_Admin {
 			return errors.New("only admins can delete group chat")
 		}
+		if err = BaseMessages.DeleteAll(ctx, chatUID); err != nil {
+			return err
+		}
+		if err = GroupChatMemebers.DeleteAll(ctx, chatUID); err != nil {
+			return err
+		}
+		return GroupChats.Delete(ctx, chatUID)
+	})
+}
+func (s *Storage) SendChatTextMessage(ctx context.Context, userUID, chatUID uuid.UUID, text string) error {
+	return db.Transaction(ctx, s.db, func(tx pgx.Tx) error {
+		Chats := s.chats.WithTX(tx)
+		BaseMessages := s.baseMessages.WithTX(tx)
+		TextMessages := s.textMessages.WithTX(tx)
+		chat, err := Chats.Select(ctx, chatUID)
+		if err != nil {
+			return err
+		}
+		isLow := chat.UserUID_low != nil && *chat.UserUID_low == userUID
+		isHigh := chat.UserUID_high != nil && *chat.UserUID_high == userUID
+		if !isLow && !isHigh {
+			return errors.New("user doesn't have access to the chat")
+		}
+		messageUID, err := BaseMessages.Insert(ctx, chatUID, &userUID, models.MessageType_Text, time.Now())
+		if err != nil {
+			return err
+		}
+		if err = TextMessages.Insert(ctx, messageUID, text, nil); err != nil {
+			return err
+		}
 		return nil
 	})
 }
-func (s *Storage) SendTextMessage(ctx context.Context, userUID, chatUID uuid.UUID, text string) error
-func (s *Storage) SendImageMessage(ctx context.Context, userUID, chatUID, fileUID uuid.UUID) error
-func (s *Storage) ChangeMessageText(ctx context.Context, userUID, messageUID uuid.UUID, newText string) error
+func (s *Storage) SendGroupChatTextMessage(ctx context.Context, userUID, chatUID uuid.UUID, text string) error {
+	return db.Transaction(ctx, s.db, func(tx pgx.Tx) error {
+		GroupChatsMembers := s.groupChatMembers.WithTX(tx)
+		BaseMessages := s.baseMessages.WithTX(tx)
+		TextMessages := s.textMessages.WithTX(tx)
+		_, err := GroupChatsMembers.Select(ctx, chatUID, userUID)
+		if err != nil {
+			return err
+		}
+		messageUID, err := BaseMessages.Insert(ctx, chatUID, &userUID, models.MessageType_Text, time.Now())
+		if err != nil {
+			return err
+		}
+		if err = TextMessages.Insert(ctx, messageUID, text, nil); err != nil {
+			return err
+		}
+		return nil
+	})
+}
+func (s *Storage) SendChatImageMessage(ctx context.Context, userUID, chatUID uuid.UUID, fileUID uuid.UUID) error {
+	return db.Transaction(ctx, s.db, func(tx pgx.Tx) error {
+		Chats := s.chats.WithTX(tx)
+		BaseMessages := s.baseMessages.WithTX(tx)
+		ImageMessages := s.imageMessages.WithTX(tx)
+		chat, err := Chats.Select(ctx, chatUID)
+		if err != nil {
+			return err
+		}
+		isLow := chat.UserUID_low != nil && *chat.UserUID_low == userUID
+		isHigh := chat.UserUID_high != nil && *chat.UserUID_high == userUID
+		if !isLow && !isHigh {
+			return errors.New("user doesn't have access to the chat")
+		}
+		messageUID, err := BaseMessages.Insert(ctx, chatUID, &userUID, models.MessageType_Image, time.Now())
+		if err != nil {
+			return err
+		}
+		if err = ImageMessages.Insert(ctx, messageUID, fileUID); err != nil {
+			return err
+		}
+		return nil
+	})
+}
+func (s *Storage) SendGroupChatImageMessage(ctx context.Context, userUID, chatUID uuid.UUID, fileUID uuid.UUID) error {
+	return db.Transaction(ctx, s.db, func(tx pgx.Tx) error {
+		GroupChatsMembers := s.groupChatMembers.WithTX(tx)
+		BaseMessages := s.baseMessages.WithTX(tx)
+		ImageMessages := s.imageMessages.WithTX(tx)
+		_, err := GroupChatsMembers.Select(ctx, chatUID, userUID)
+		if err != nil {
+			return err
+		}
+		messageUID, err := BaseMessages.Insert(ctx, chatUID, &userUID, models.MessageType_Image, time.Now())
+		if err != nil {
+			return err
+		}
+		if err = ImageMessages.Insert(ctx, messageUID, fileUID); err != nil {
+			return err
+		}
+		return nil
+	})
+}
+func (s *Storage) ChangeMessageText(ctx context.Context, userUID, messageUID uuid.UUID, newContent string) error {
+	return db.Transaction(ctx, s.db, func(tx pgx.Tx) error {
+		Messages := s.baseMessages.WithTX(tx)
+		TextMessages := s.textMessages.WithTX(tx)
+		baseMsg, err := Messages.Select(ctx, messageUID)
+		if err != nil {
+			return err
+		}
+		if baseMsg.SenderUID == nil || *baseMsg.SenderUID != userUID {
+			return errors.New("wrong sender")
+		}
+		return TextMessages.UpdateText(ctx, messageUID, newContent, time.Now())
+	})
+}
 func (s *Storage) DeleteMessage(ctx context.Context, userUID, messageUID uuid.UUID) error {
 	return db.Transaction(ctx, s.db, func(tx pgx.Tx) error {
 		Messages := s.baseMessages.WithTX(tx)
