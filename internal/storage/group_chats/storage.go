@@ -5,6 +5,8 @@ import (
 	"log/slog"
 	"time"
 
+	"github.com/go-chat-devs/service-core/internal/models"
+	"github.com/go-chat-devs/service-core/internal/scanner"
 	"github.com/go-chat-devs/service-core/internal/storage/db"
 	"github.com/go-chat-devs/service-core/internal/tagger"
 	"github.com/google/uuid"
@@ -30,13 +32,24 @@ func (s *Storage) Insert(ctx context.Context,
 	bio *string,
 	avatarUID *uuid.UUID,
 	created_at time.Time,
-) error {
-	const sql = `INSERT INTO core.group_chats(title, bio, avatar_uid, created_at) VALUES($1, $2, $3, $4)`
-	_, err := s.db.Exec(ctx, sql, title, bio, avatarUID, created_at)
+) (chat_uid uuid.UUID, err error) {
+	const sql = `INSERT INTO core.group_chats(title, bio, avatar_uid, created_at) VALUES($1, $2, $3, $4) RETURNING uid`
+	err = s.db.QueryRow(ctx, sql, title, bio, avatarUID, created_at).Scan(&chat_uid)
 	if err != nil {
 		slog.Error(tag("insert error: %v", err))
 	}
-	return err
+	return
+}
+
+func (s *Storage) Select(ctx context.Context, uid uuid.UUID) (*models.GroupChat, error) {
+	const sql = `SELECT * FROM core.group_chats WHERE uid=$1`
+	row := s.db.QueryRow(ctx, sql, uid)
+	res, err := scanner.Row(row, models.GroupChatFactory)
+	if err != nil {
+		slog.Error(tag("select error: %v", err))
+		return nil, err
+	}
+	return res, nil
 }
 
 func (s *Storage) UpdateTitle(ctx context.Context, uid uuid.UUID, title string) error {
@@ -66,7 +79,7 @@ func (s *Storage) UpdateAvatar(ctx context.Context, uid uuid.UUID, avatarUID *uu
 	return err
 }
 
-func (s *Storage) Delete(ctx context.Context, uid string) error {
+func (s *Storage) Delete(ctx context.Context, uid uuid.UUID) error {
 	const sql = `DELETE FROM core.group_chats WHERE uid=$1`
 	_, err := s.db.Exec(ctx, sql, uid)
 	if err != nil {

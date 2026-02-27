@@ -28,11 +28,11 @@ func (s *Storage) WithTX(tx pgx.Tx) *Storage {
 
 func (s *Storage) Insert(
 	ctx context.Context,
-	messageID int,
+	messageUID uuid.UUID,
 	fileUID uuid.UUID,
 ) error {
-	const sql = "INSERT INTO core.image_messages(message_id, file_uid) VALUES($1, $2)"
-	_, err := s.db.Exec(ctx, sql, messageID, fileUID)
+	const sql = "INSERT INTO core.image_messages(message_uid, file_uid) VALUES($1, $2)"
+	_, err := s.db.Exec(ctx, sql, messageUID, fileUID)
 	if err != nil {
 		slog.Error(tag("insert error: %v", err))
 	}
